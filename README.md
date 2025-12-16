@@ -1,8 +1,6 @@
 <p align="center">
-  <img src="https://www.napkin.ai/assets/napkin-logo-2024.svg" alt="Napkin AI Logo" width="300">
+  <img src="assets/banner.jpeg" alt="Napkin AI MCP Server Banner" width="100%">
 </p>
-
-# Napkin AI MCP Server
 
 [![CI](https://github.com/LouisChanCLY/napkin-ai-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/LouisChanCLY/napkin-ai-mcp/actions/workflows/ci.yml)
 [![npm version](https://badge.fury.io/js/napkin-ai-mcp.svg)](https://www.npmjs.com/package/napkin-ai-mcp)
