@@ -32,6 +32,29 @@ An MCP (Model Context Protocol) server for generating infographics and visuals u
 - **Dry-Run Mode**: Validate requests without calling the API
 - **CLI Help**: Run with `--help` for usage information
 
+## Example Output
+
+Here are some examples of visuals generated using this MCP server:
+
+### Mind Map
+<p align="center">
+  <img src="assets/mindmap.svg" alt="Mind Map Example" width="800">
+</p>
+
+### Flowchart
+<p align="center">
+  <img src="assets/flowchart.svg" alt="Flowchart Example" width="800">
+</p>
+
+### Timeline
+<p align="center">
+  <img src="assets/timeline.svg" alt="Timeline Example" width="800">
+</p>
+
+*Generated from plain text using the Napkin AI API. See more examples at the [Napkin AI Gallery](https://www.napkin.ai/gallery).*
+
+---
+
 ## Prerequisites
 
 - Node.js 18.x or later
