@@ -1,8 +1,14 @@
+<p align="center">
+  <img src="https://cdn.brandfetch.io/id-0X7G2NZ/theme/dark/logo.svg" alt="Napkin AI Logo" width="300">
+</p>
+
 # Napkin AI MCP Server
 
 [![CI](https://github.com/your-username/napkin-ai-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/your-username/napkin-ai-mcp/actions/workflows/ci.yml)
 [![npm version](https://badge.fury.io/js/napkin-ai-mcp.svg)](https://www.npmjs.com/package/napkin-ai-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+> **Disclaimer:** This is an **unofficial**, community-maintained MCP server for Napkin AI. It is not affiliated with, endorsed by, or officially supported by Napkin AI or Second Layer, Inc. For official Napkin AI products and support, please visit [napkin.ai](https://napkin.ai).
 
 An MCP (Model Context Protocol) server for generating infographics and visuals using the [Napkin AI](https://napkin.ai) API. This server enables AI assistants like Claude to generate professional visuals from text content.
 
