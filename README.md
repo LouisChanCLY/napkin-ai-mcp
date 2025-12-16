@@ -10,6 +10,8 @@
 
 > **Disclaimer:** This is an **unofficial**, community-maintained MCP server for Napkin AI. It is not affiliated with, endorsed by, or officially supported by Napkin AI or Second Layer, Inc. For official Napkin AI products and support, please visit [napkin.ai](https://napkin.ai).
 
+> **API Compatibility:** Tested with Napkin AI API v0.10.5 (December 2024). Newer API versions may introduce breaking changes.
+
 An MCP (Model Context Protocol) server for generating infographics and visuals using the [Napkin AI](https://napkin.ai) API. This server enables AI assistants like Claude to generate professional visuals from text content.
 
 ## Features
@@ -34,24 +36,95 @@ An MCP (Model Context Protocol) server for generating infographics and visuals u
 
 ## Example Output
 
-Here are some examples of visuals generated using this MCP server:
+Here are some examples of visuals generated using this MCP server. Each example shows the input text and the resulting visual.
 
 ### Mind Map
-<p align="center">
-  <img src="assets/mindmap.svg" alt="Mind Map Example" width="800">
-</p>
+
+**Input text:**
+```
+# Benefits of Visual Communication
+
+## Speed
+- Processed 60,000x faster than text
+- Instant pattern recognition
+
+## Retention
+- 80% of what we see is remembered
+- Only 20% of text is retained
+
+## Engagement
+- 94% more views than text-only
+- Higher social sharing rates
+```
+
+**Parameters:** `format: "svg"`, `visual_query: "mindmap"`, `language: "en-GB"`
+
+<details>
+<summary>View generated visual</summary>
+
+![Mind Map Example](assets/mindmap.svg)
+
+</details>
 
 ### Flowchart
-<p align="center">
-  <img src="assets/flowchart.svg" alt="Flowchart Example" width="800">
-</p>
+
+**Input text:**
+```
+# User Registration Flow
+
+1. User clicks "Sign Up" button
+2. Enter email address
+3. System validates email format
+4. If invalid, show error message
+5. If valid, send verification email
+6. User clicks verification link
+7. Create password
+8. Validate password strength
+9. If strong, create account
+10. Redirect to dashboard
+```
+
+**Parameters:** `format: "svg"`, `visual_query: "flowchart"`, `language: "en-GB"`
+
+<details>
+<summary>View generated visual</summary>
+
+![Flowchart Example](assets/flowchart.svg)
+
+</details>
 
 ### Timeline
-<p align="center">
-  <img src="assets/timeline.svg" alt="Timeline Example" width="800">
-</p>
 
-*Generated from plain text using the Napkin AI API. See more examples at the [Napkin AI Gallery](https://www.napkin.ai/gallery).*
+**Input text:**
+```
+# History of Artificial Intelligence
+
+## 1950
+Alan Turing publishes "Computing Machinery and Intelligence"
+
+## 1956
+The term "Artificial Intelligence" is coined
+
+## 1997
+IBM's Deep Blue defeats world chess champion
+
+## 2016
+AlphaGo defeats Go world champion Lee Sedol
+
+## 2022
+ChatGPT launches, bringing LLMs to the mainstream
+```
+
+**Parameters:** `format: "svg"`, `visual_query: "timeline"`, `language: "en-GB"`
+
+<details>
+<summary>View generated visual</summary>
+
+![Timeline Example](assets/timeline.svg)
+
+</details>
+
+*See more examples at the [Napkin AI Gallery](https://www.napkin.ai/gallery).*
 
 ---
 
@@ -589,4 +662,4 @@ MIT
 
 ## Contributing
 
-Contributions are welcome! Please read our contributing guidelines and submit pull requests to the main repository.
+Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) before submitting pull requests.
