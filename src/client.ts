@@ -50,9 +50,46 @@ export class NapkinApiError extends Error {
     public readonly statusCode?: number,
     public readonly responseBody?: string
   ) {
-    super(message);
+    super(formatErrorMessage(message, statusCode, responseBody));
     this.name = "NapkinApiError";
   }
+}
+
+/**
+ * Formats error messages to be more actionable.
+ */
+function formatErrorMessage(message: string, statusCode?: number, responseBody?: string): string {
+  let hint = "";
+
+  if (statusCode === 401) {
+    hint = " Check your NAPKIN_API_KEY is correct and not expired.";
+  } else if (statusCode === 403) {
+    hint = " Your API key may not have access to this resource.";
+  } else if (statusCode === 404) {
+    hint = " The requested resource was not found. Check the request ID is valid.";
+  } else if (statusCode === 422) {
+    hint = " Invalid request parameters. Check content is not empty and format is valid.";
+  } else if (statusCode === 429) {
+    hint = " Rate limited. Wait a moment and try again.";
+  } else if (statusCode && statusCode >= 500) {
+    hint = " Napkin AI service error. Try again later.";
+  }
+
+  if (responseBody) {
+    try {
+      const parsed = JSON.parse(responseBody);
+      if (parsed.error || parsed.message || parsed.detail) {
+        const detail = parsed.error || parsed.message || parsed.detail;
+        return `${message}: ${detail}${hint}`;
+      }
+    } catch {
+      if (responseBody.length < 200 && !responseBody.includes("<")) {
+        return `${message}: ${responseBody}${hint}`;
+      }
+    }
+  }
+
+  return `${message}${hint}`;
 }
 
 /**

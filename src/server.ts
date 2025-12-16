@@ -73,6 +73,10 @@ export function createNapkinMcpServer(config: NapkinMcpServerConfig): McpServer 
     format: OutputFormatSchema.optional().describe(
       "Output format: svg, png, or ppt (default: svg)"
     ),
+    dry_run: z
+      .boolean()
+      .optional()
+      .describe("Validate inputs without calling the API (default: false)"),
     context: z.string().optional().describe("Additional context for visual generation"),
     language: z.string().optional().describe("BCP 47 language tag (e.g., en, en-GB). Default: en"),
     style_id: z.string().optional().describe("Style identifier from Napkin AI"),
@@ -150,6 +154,19 @@ export function createNapkinMcpServer(config: NapkinMcpServerConfig): McpServer 
         text_extraction_mode: input.text_extraction_mode,
         sort_strategy: input.sort_strategy,
       };
+
+      if (input.dry_run) {
+        const dryRunResponse = {
+          dry_run: true,
+          valid: true,
+          request,
+          message: "Request validated successfully. Set dry_run=false to execute.",
+        };
+        return {
+          content: [{ type: "text", text: JSON.stringify(dryRunResponse, null, 2) }],
+          structuredContent: dryRunResponse,
+        };
+      }
 
       const response = await client.generate(request);
 
@@ -276,6 +293,19 @@ export function createNapkinMcpServer(config: NapkinMcpServerConfig): McpServer 
         sort_strategy: input.sort_strategy,
       };
 
+      if (input.dry_run) {
+        const dryRunResponse = {
+          dry_run: true,
+          valid: true,
+          request,
+          message: "Request validated successfully. Set dry_run=false to execute.",
+        };
+        return {
+          content: [{ type: "text", text: JSON.stringify(dryRunResponse, null, 2) }],
+          structuredContent: dryRunResponse,
+        };
+      }
+
       const status = await client.generateAndWait(request, {
         pollingInterval,
         maxWaitTime,
@@ -316,7 +346,7 @@ export function createNapkinMcpServer(config: NapkinMcpServerConfig): McpServer 
       },
     },
     async (input) => {
-      if (!storageProvider) {
+      if (!storageProvider && !input.dry_run) {
         throw new Error("Storage not configured. Set storage configuration to use this tool.");
       }
 
@@ -340,6 +370,22 @@ export function createNapkinMcpServer(config: NapkinMcpServerConfig): McpServer 
         text_extraction_mode: input.text_extraction_mode,
         sort_strategy: input.sort_strategy,
       };
+
+      if (input.dry_run) {
+        const dryRunResponse = {
+          dry_run: true,
+          valid: true,
+          storage_configured: !!storageProvider,
+          request,
+          message: storageProvider
+            ? "Request validated successfully. Set dry_run=false to execute."
+            : "Request valid but storage not configured. Configure storage to save files.",
+        };
+        return {
+          content: [{ type: "text", text: JSON.stringify(dryRunResponse, null, 2) }],
+          structuredContent: dryRunResponse,
+        };
+      }
 
       const status = await client.generateAndWait(request, {
         pollingInterval,
