@@ -26,6 +26,22 @@ function debug(message: string, data?: unknown): void {
 }
 
 /**
+ * Determines if an error is retryable (transient).
+ */
+function isRetryableError(status: number): boolean {
+  return status === 429 || status === 502 || status === 503 || status === 504;
+}
+
+/**
+ * Calculates exponential backoff delay with jitter.
+ */
+function getBackoffDelay(attempt: number, baseDelay: number = 1000): number {
+  const delay = baseDelay * Math.pow(2, attempt);
+  const jitter = delay * 0.2 * Math.random();
+  return Math.min(delay + jitter, 30000);
+}
+
+/**
  * Error thrown when a Napkin AI API request fails.
  */
 export class NapkinApiError extends Error {
@@ -86,9 +102,14 @@ export class NapkinClient {
   }
 
   /**
-   * Makes an authenticated request to the Napkin AI API.
+   * Makes an authenticated request to the Napkin AI API with retry logic.
    */
-  private async request<T>(method: string, path: string, body?: unknown): Promise<T> {
+  private async request<T>(
+    method: string,
+    path: string,
+    body?: unknown,
+    maxRetries: number = 3
+  ): Promise<T> {
     const url = `${this.baseUrl}${path}`;
     const headers: Record<string, string> = {
       Authorization: `Bearer ${this.apiKey}`,
@@ -98,27 +119,64 @@ export class NapkinClient {
       headers["Content-Type"] = "application/json";
     }
 
-    debug(`${method} ${path}`, body);
+    let lastError: NapkinApiError | undefined;
 
-    const response = await this.fetchFn(url, {
-      method,
-      headers,
-      body: body ? JSON.stringify(body) : undefined,
-    });
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      if (attempt > 0) {
+        const delay = getBackoffDelay(attempt - 1);
+        debug(`Retry attempt ${attempt}/${maxRetries} after ${Math.round(delay)}ms`);
+        await this.sleep(delay);
+      }
 
-    if (!response.ok) {
-      const responseBody = await response.text();
-      debug(`Request failed: ${response.status}`, responseBody);
-      throw new NapkinApiError(
-        `API request failed: ${response.status} ${response.statusText}`,
-        response.status,
-        responseBody
-      );
+      debug(`${method} ${path}`, body);
+
+      try {
+        const response = await this.fetchFn(url, {
+          method,
+          headers,
+          body: body ? JSON.stringify(body) : undefined,
+        });
+
+        if (!response.ok) {
+          const responseBody = await response.text();
+          debug(`Request failed: ${response.status}`, responseBody);
+
+          if (isRetryableError(response.status) && attempt < maxRetries) {
+            lastError = new NapkinApiError(
+              `API request failed: ${response.status} ${response.statusText}`,
+              response.status,
+              responseBody
+            );
+            continue;
+          }
+
+          throw new NapkinApiError(
+            `API request failed: ${response.status} ${response.statusText}`,
+            response.status,
+            responseBody
+          );
+        }
+
+        const result = (await response.json()) as T;
+        debug(`Response received`, result);
+        return result;
+      } catch (error) {
+        if (error instanceof NapkinApiError) {
+          throw error;
+        }
+
+        const message = error instanceof Error ? error.message : String(error);
+        if (attempt < maxRetries) {
+          debug(`Request error (will retry): ${message}`);
+          lastError = new NapkinApiError(`Network error: ${message}`);
+          continue;
+        }
+
+        throw new NapkinApiError(`Network error: ${message}`);
+      }
     }
 
-    const result = (await response.json()) as T;
-    debug(`Response received`, result);
-    return result;
+    throw lastError ?? new NapkinApiError("Request failed after retries");
   }
 
   /**

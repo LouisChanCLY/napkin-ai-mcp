@@ -396,4 +396,85 @@ describe("NapkinClient", () => {
       expect(result.error).toContain("Connection failed");
     });
   });
+
+  describe("retry logic", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("should retry on 429 rate limit", async () => {
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 429,
+          statusText: "Too Many Requests",
+          text: () => Promise.resolve("Rate limited"),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve({ id: "req-123", status: "pending" }),
+        });
+
+      const promise = client.generate({ format: "svg", content: "Test" });
+      await vi.runAllTimersAsync();
+      const result = await promise;
+
+      expect(result.id).toBe("req-123");
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+
+    it("should retry on 503 Service Unavailable", async () => {
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 503,
+          statusText: "Service Unavailable",
+          text: () => Promise.resolve("Service down"),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve({ id: "req-123", status: "pending" }),
+        });
+
+      const promise = client.generate({ format: "svg", content: "Test" });
+      await vi.runAllTimersAsync();
+      const result = await promise;
+
+      expect(result.id).toBe("req-123");
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+
+    it("should not retry on 400 Bad Request", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        statusText: "Bad Request",
+        text: () => Promise.resolve("Invalid input"),
+      });
+
+      await expect(client.generate({ format: "svg", content: "Test" })).rejects.toThrow(
+        NapkinApiError
+      );
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it("should give up after max retries", async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 503,
+        statusText: "Service Unavailable",
+        text: () => Promise.resolve("Service down"),
+      });
+
+      const promise = client.generate({ format: "svg", content: "Test" });
+      await vi.runAllTimersAsync();
+
+      await expect(promise).rejects.toThrow(NapkinApiError);
+      expect(mockFetch).toHaveBeenCalledTimes(4);
+    });
+  });
 });
