@@ -1,9 +1,20 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { rmSync, existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { LocalStorageProvider } from "./local.js";
 import { createStorageProvider, StorageConfig } from "./index.js";
+import { S3StorageProvider } from "./s3.js";
+import { DiscordStorageProvider } from "./discord.js";
+import { TelegramStorageProvider } from "./telegram.js";
+
+// Mock @aws-sdk/client-s3
+vi.mock("@aws-sdk/client-s3", () => ({
+  S3Client: vi.fn().mockImplementation(() => ({
+    send: vi.fn().mockResolvedValue({}),
+  })),
+  PutObjectCommand: vi.fn(),
+}));
 
 describe("LocalStorageProvider", () => {
   const testDir = join(tmpdir(), "napkin-test-" + Date.now());
@@ -354,5 +365,149 @@ describe("DiscordStorageProvider", () => {
         webhookUrl: "not-a-valid-url",
       } as StorageConfig)
     ).toThrow();
+  });
+});
+
+describe("S3StorageProvider store method", () => {
+  it("should store file and return correct result", async () => {
+    const provider = new S3StorageProvider({
+      bucket: "test-bucket",
+      region: "eu-west-1",
+    });
+
+    const result = await provider.store({
+      content: Buffer.from("test content"),
+      filename: "test.svg",
+      mimeType: "image/svg+xml",
+    });
+
+    expect(result.location).toBe("s3://test-bucket/test.svg");
+    expect(result.publicUrl).toBe("https://test-bucket.s3.eu-west-1.amazonaws.com/test.svg");
+    expect(result.metadata?.bucket).toBe("test-bucket");
+    expect(result.metadata?.key).toBe("test.svg");
+  });
+
+  it("should handle prefix correctly", async () => {
+    const provider = new S3StorageProvider({
+      bucket: "test-bucket",
+      region: "eu-west-1",
+      prefix: "visuals/",
+    });
+
+    const result = await provider.store({
+      content: Buffer.from("test"),
+      filename: "diagram.png",
+    });
+
+    expect(result.location).toBe("s3://test-bucket/visuals/diagram.png");
+    expect(result.metadata?.key).toBe("visuals/diagram.png");
+  });
+
+  it("should handle base64 input", async () => {
+    const provider = new S3StorageProvider({
+      bucket: "test-bucket",
+      region: "us-east-1",
+    });
+
+    const base64Content = Buffer.from("test content").toString("base64");
+    const result = await provider.store({
+      content: base64Content,
+      filename: "test.txt",
+    });
+
+    expect(result.location).toContain("s3://test-bucket/test.txt");
+  });
+
+  it("should use custom endpoint for S3-compatible services", async () => {
+    const provider = new S3StorageProvider({
+      bucket: "test-bucket",
+      region: "auto",
+      endpoint: "https://s3.example.com",
+    });
+
+    const result = await provider.store({
+      content: Buffer.from("test"),
+      filename: "file.svg",
+    });
+
+    expect(result.publicUrl).toBe("https://s3.example.com/test-bucket/file.svg");
+  });
+});
+
+describe("DiscordStorageProvider", () => {
+  const mockFetch = vi.fn();
+
+  beforeEach(() => {
+    vi.stubGlobal("fetch", mockFetch);
+    mockFetch.mockReset();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("should store file via webhook", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          id: "message-123",
+          attachments: [{ url: "https://cdn.discord.com/attachments/test.svg" }],
+        }),
+    });
+
+    const provider = new DiscordStorageProvider({
+      webhookUrl: "https://discord.com/api/webhooks/123456/abcdef",
+    });
+
+    const result = await provider.store({
+      content: Buffer.from("<svg>test</svg>"),
+      filename: "test.svg",
+      mimeType: "image/svg+xml",
+    });
+
+    expect(result.location).toContain("discord:");
+    expect(mockFetch).toHaveBeenCalled();
+  });
+});
+
+describe("TelegramStorageProvider", () => {
+  const mockFetch = vi.fn();
+
+  beforeEach(() => {
+    vi.stubGlobal("fetch", mockFetch);
+    mockFetch.mockReset();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("should store file via Telegram API", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          ok: true,
+          result: {
+            message_id: 123,
+            document: { file_id: "file-abc123" },
+          },
+        }),
+    });
+
+    const provider = new TelegramStorageProvider({
+      botToken: "123456:ABC-token",
+      chatId: "-1001234567890",
+    });
+
+    const result = await provider.store({
+      content: Buffer.from("<svg>test</svg>"),
+      filename: "test.svg",
+      mimeType: "image/svg+xml",
+    });
+
+    expect(result.location).toContain("telegram:");
+    expect(mockFetch).toHaveBeenCalled();
   });
 });
