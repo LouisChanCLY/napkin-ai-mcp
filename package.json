@@ -1,6 +1,6 @@
 {
   "name": "napkin-ai-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "MCP server for Napkin AI visual generation API with multi-storage support",
   "type": "module",
   "main": "dist/index.js",
