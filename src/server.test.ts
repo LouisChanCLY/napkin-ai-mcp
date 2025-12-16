@@ -1,31 +1,49 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createNapkinMcpServer, NapkinMcpServerConfig } from "./server.js";
 
-// Mock the NapkinClient
-vi.mock("./client.js", () => ({
-  NapkinClient: vi.fn().mockImplementation(() => ({
+// Use vi.hoisted to ensure mocks are available before vi.mock is hoisted
+vi.hoisted(() => ({
+  mockClientMethods: {
     generate: vi.fn(),
     getStatus: vi.fn(),
     downloadFile: vi.fn(),
     generateAndWait: vi.fn(),
     verifyApiKey: vi.fn(),
-  })),
-}));
-
-// Mock storage provider
-vi.mock("./storage/index.js", () => ({
-  createStorageProvider: vi.fn().mockReturnValue({
-    store: vi.fn().mockResolvedValue({
-      location: "/tmp/test-file.svg",
-      publicUrl: "https://example.com/test-file.svg",
-    }),
-  }),
-  StorageConfigSchema: {
-    optional: () => ({
-      safeParse: () => ({ success: true }),
-    }),
+  },
+  mockStoreMethods: {
+    store: vi.fn(),
   },
 }));
+
+// Mock the NapkinClient
+vi.mock("./client.js", () => {
+  return {
+    NapkinClient: vi.fn().mockImplementation(() => ({
+      generate: vi.fn(),
+      getStatus: vi.fn(),
+      downloadFile: vi.fn(),
+      generateAndWait: vi.fn(),
+      verifyApiKey: vi.fn(),
+    })),
+  };
+});
+
+// Mock storage provider
+vi.mock("./storage/index.js", () => {
+  return {
+    createStorageProvider: vi.fn().mockReturnValue({
+      store: vi.fn().mockResolvedValue({
+        location: "/tmp/test-file.svg",
+        publicUrl: "https://example.com/test-file.svg",
+      }),
+    }),
+    StorageConfigSchema: {
+      optional: () => ({
+        safeParse: () => ({ success: true }),
+      }),
+    },
+  };
+});
 
 describe("createNapkinMcpServer", () => {
   let config: NapkinMcpServerConfig;

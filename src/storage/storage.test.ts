@@ -7,6 +7,7 @@ import { createStorageProvider, StorageConfig } from "./index.js";
 import { S3StorageProvider } from "./s3.js";
 import { DiscordStorageProvider } from "./discord.js";
 import { TelegramStorageProvider } from "./telegram.js";
+import { NotionStorageProvider } from "./notion.js";
 
 // Mock @aws-sdk/client-s3
 vi.mock("@aws-sdk/client-s3", () => ({
@@ -508,6 +509,69 @@ describe("TelegramStorageProvider", () => {
     });
 
     expect(result.location).toContain("telegram:");
+    expect(mockFetch).toHaveBeenCalled();
+  });
+
+  it("should handle caption template", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          ok: true,
+          result: { message_id: 456, document: { file_id: "file-xyz" } },
+        }),
+    });
+
+    const provider = new TelegramStorageProvider({
+      botToken: "123456:ABC-token",
+      chatId: "123456789",
+      captionTemplate: "New visual: {filename}",
+    });
+
+    await provider.store({
+      content: Buffer.from("test"),
+      filename: "chart.png",
+    });
+
+    expect(mockFetch).toHaveBeenCalled();
+  });
+});
+
+describe("NotionStorageProvider store method", () => {
+  const mockFetch = vi.fn();
+
+  beforeEach(() => {
+    vi.stubGlobal("fetch", mockFetch);
+    mockFetch.mockReset();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("should store file via Notion API", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          id: "block-123",
+          type: "file",
+          file: { url: "https://notion.so/file.svg" },
+        }),
+    });
+
+    const provider = new NotionStorageProvider({
+      token: "secret_test123",
+      pageId: "12345678-abcd-1234-abcd-123456789abc",
+    });
+
+    const result = await provider.store({
+      content: Buffer.from("<svg>test</svg>"),
+      filename: "test.svg",
+      mimeType: "image/svg+xml",
+    });
+
+    expect(result.location).toContain("notion:");
     expect(mockFetch).toHaveBeenCalled();
   });
 });
