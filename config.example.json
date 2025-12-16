@@ -1,0 +1,16 @@
+{
+  "napkinApiKey": "YOUR_NAPKIN_API_KEY",
+  "napkinApiBaseUrl": "https://api.napkin.ai",
+  "storage": {
+    "type": "local",
+    "directory": "./output"
+  },
+  "defaults": {
+    "format": "svg",
+    "language": "en-GB",
+    "color_mode": "light",
+    "orientation": "auto"
+  },
+  "pollingInterval": 2000,
+  "maxWaitTime": 300000
+}
