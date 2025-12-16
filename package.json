@@ -34,8 +34,16 @@
     "generation",
     "model-context-protocol"
   ],
-  "author": "",
+  "author": "Louis Chan",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LouisChanCLY/napkin-ai-mcp.git"
+  },
+  "homepage": "https://github.com/LouisChanCLY/napkin-ai-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/LouisChanCLY/napkin-ai-mcp/issues"
+  },
   "engines": {
     "node": ">=18.0.0"
   },
