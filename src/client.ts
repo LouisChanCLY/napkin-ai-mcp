@@ -12,6 +12,20 @@ import {
 const DEFAULT_BASE_URL = "https://api.napkin.ai";
 
 /**
+ * Debug logger that only outputs when NAPKIN_DEBUG is set.
+ */
+function debug(message: string, data?: unknown): void {
+  if (process.env.NAPKIN_DEBUG === "true") {
+    const timestamp = new Date().toISOString();
+    if (data !== undefined) {
+      console.error(`[${timestamp}] [napkin-ai] ${message}`, JSON.stringify(data, null, 2));
+    } else {
+      console.error(`[${timestamp}] [napkin-ai] ${message}`);
+    }
+  }
+}
+
+/**
  * Error thrown when a Napkin AI API request fails.
  */
 export class NapkinApiError extends Error {
@@ -84,6 +98,8 @@ export class NapkinClient {
       headers["Content-Type"] = "application/json";
     }
 
+    debug(`${method} ${path}`, body);
+
     const response = await this.fetchFn(url, {
       method,
       headers,
@@ -92,6 +108,7 @@ export class NapkinClient {
 
     if (!response.ok) {
       const responseBody = await response.text();
+      debug(`Request failed: ${response.status}`, responseBody);
       throw new NapkinApiError(
         `API request failed: ${response.status} ${response.statusText}`,
         response.status,
@@ -99,7 +116,44 @@ export class NapkinClient {
       );
     }
 
-    return response.json() as Promise<T>;
+    const result = (await response.json()) as T;
+    debug(`Response received`, result);
+    return result;
+  }
+
+  /**
+   * Verifies the API key is valid by making a lightweight request.
+   *
+   * @returns Object with validity status and optional error message
+   */
+  async verifyApiKey(): Promise<{ valid: boolean; error?: string; baseUrl: string }> {
+    debug("Verifying API key");
+    try {
+      const response = await this.fetchFn(`${this.baseUrl}/v1/visual/test`, {
+        method: "HEAD",
+        headers: {
+          Authorization: `Bearer ${this.apiKey}`,
+        },
+      });
+
+      if (response.status === 401 || response.status === 403) {
+        return { valid: false, error: "Invalid or expired API key", baseUrl: this.baseUrl };
+      }
+
+      if (response.status === 404 || response.status === 405 || response.ok) {
+        return { valid: true, baseUrl: this.baseUrl };
+      }
+
+      return {
+        valid: false,
+        error: `Unexpected response: ${response.status} ${response.statusText}`,
+        baseUrl: this.baseUrl,
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      debug(`Verification failed: ${message}`);
+      return { valid: false, error: `Connection failed: ${message}`, baseUrl: this.baseUrl };
+    }
   }
 
   /**
@@ -204,19 +258,23 @@ export class NapkinClient {
 
     const response = await this.generate(request);
     const startTime = Date.now();
+    debug(`Generation started, request ID: ${response.id}`);
 
     while (true) {
       const status = await this.getStatus(response.id);
+      debug(`Poll status: ${status.status}`, { elapsed: Date.now() - startTime });
 
       if (options.onProgress) {
         options.onProgress(status);
       }
 
       if (status.status === "completed") {
+        debug(`Generation completed in ${Date.now() - startTime}ms`);
         return status;
       }
 
       if (status.status === "failed") {
+        debug(`Generation failed: ${status.error}`);
         throw new NapkinApiError(
           `Visual generation failed: ${status.error ?? "Unknown error"}`,
           undefined,
@@ -225,6 +283,7 @@ export class NapkinClient {
       }
 
       if (Date.now() - startTime > maxWaitTime) {
+        debug(`Generation timed out after ${maxWaitTime}ms`);
         throw new NapkinApiError(
           `Visual generation timed out after ${maxWaitTime}ms`,
           undefined,

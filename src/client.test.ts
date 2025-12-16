@@ -334,4 +334,66 @@ describe("NapkinClient", () => {
       );
     });
   });
+
+  describe("verifyApiKey", () => {
+    it("should return valid=true for successful response", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+      });
+
+      const result = await client.verifyApiKey();
+
+      expect(result.valid).toBe(true);
+      expect(result.error).toBeUndefined();
+      expect(result.baseUrl).toBe("https://api.test.napkin.ai");
+    });
+
+    it("should return valid=true for 404 response (endpoint exists but not found)", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+        statusText: "Not Found",
+      });
+
+      const result = await client.verifyApiKey();
+
+      expect(result.valid).toBe(true);
+    });
+
+    it("should return valid=false for 401 Unauthorized", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        statusText: "Unauthorized",
+      });
+
+      const result = await client.verifyApiKey();
+
+      expect(result.valid).toBe(false);
+      expect(result.error).toContain("Invalid or expired API key");
+    });
+
+    it("should return valid=false for 403 Forbidden", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 403,
+        statusText: "Forbidden",
+      });
+
+      const result = await client.verifyApiKey();
+
+      expect(result.valid).toBe(false);
+      expect(result.error).toContain("Invalid or expired API key");
+    });
+
+    it("should return valid=false for connection errors", async () => {
+      mockFetch.mockRejectedValueOnce(new Error("Network error"));
+
+      const result = await client.verifyApiKey();
+
+      expect(result.valid).toBe(false);
+      expect(result.error).toContain("Connection failed");
+    });
+  });
 });

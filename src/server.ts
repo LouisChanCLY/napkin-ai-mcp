@@ -422,6 +422,40 @@ export function createNapkinMcpServer(config: NapkinMcpServerConfig): McpServer 
     }
   );
 
+  server.registerTool(
+    "verify_api_key",
+    {
+      title: "Verify API Key",
+      description:
+        "Verify that the configured Napkin AI API key is valid. " +
+        "Use this to test your setup before generating visuals.",
+      inputSchema: {},
+      outputSchema: {
+        valid: z.boolean().describe("Whether the API key is valid"),
+        error: z.string().optional().describe("Error message if invalid"),
+        base_url: z.string().describe("API base URL being used"),
+      },
+    },
+    async () => {
+      const result = await client.verifyApiKey();
+
+      const output = {
+        valid: result.valid,
+        error: result.error,
+        base_url: result.baseUrl,
+      };
+
+      const statusText = result.valid
+        ? "API key is valid and ready to use"
+        : `API key verification failed: ${result.error}`;
+
+      return {
+        content: [{ type: "text", text: statusText }],
+        structuredContent: output,
+      };
+    }
+  );
+
   return server;
 }
 
