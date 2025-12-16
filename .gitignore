@@ -39,6 +39,7 @@ test-api.ts
 
 # Claude
 CLAUDE.md
+.claude/settings.json
 
 # MCP configuration (contains API keys)
 .mcp.json
