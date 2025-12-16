@@ -404,6 +404,7 @@ describe("NapkinClient", () => {
 
     afterEach(() => {
       vi.useRealTimers();
+      mockFetch.mockReset();
     });
 
     it("should retry on 429 rate limit", async () => {
@@ -463,17 +464,31 @@ describe("NapkinClient", () => {
     });
 
     it("should give up after max retries", async () => {
-      mockFetch.mockResolvedValue({
+      const failResponse = {
         ok: false,
         status: 503,
         statusText: "Service Unavailable",
         text: () => Promise.resolve("Service down"),
+      };
+
+      mockFetch
+        .mockResolvedValueOnce(failResponse)
+        .mockResolvedValueOnce(failResponse)
+        .mockResolvedValueOnce(failResponse)
+        .mockResolvedValueOnce(failResponse);
+
+      // Wrap in a settled promise pattern to avoid unhandled rejection warnings
+      let caughtError: Error | null = null;
+      const generatePromise = client.generate({ format: "svg", content: "Test" }).catch((err) => {
+        caughtError = err;
       });
 
-      const promise = client.generate({ format: "svg", content: "Test" });
+      // Run all pending timers to completion
       await vi.runAllTimersAsync();
+      await generatePromise;
 
-      await expect(promise).rejects.toThrow(NapkinApiError);
+      expect(caughtError).toBeInstanceOf(NapkinApiError);
+      expect((caughtError as NapkinApiError).statusCode).toBe(503);
       expect(mockFetch).toHaveBeenCalledTimes(4);
     });
   });
