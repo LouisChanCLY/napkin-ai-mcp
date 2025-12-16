@@ -14,8 +14,10 @@
     "dev": "tsx src/index.ts",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
-    "format": "prettier --write \"src/**/*.ts\"",
-    "format:check": "prettier --check \"src/**/*.ts\"",
+    "lint:md": "markdownlint-cli2 \"**/*.md\" \"#node_modules\"",
+    "lint:md:fix": "markdownlint-cli2 --fix \"**/*.md\" \"#node_modules\"",
+    "format": "prettier --write \"src/**/*.ts\" \"*.md\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"*.md\"",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -37,8 +39,8 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0",
     "@aws-sdk/client-s3": "^3.700.0",
+    "@modelcontextprotocol/sdk": "^1.0.0",
     "@slack/web-api": "^7.8.0",
     "googleapis": "^144.0.0",
     "zod": "^3.23.0"
@@ -52,6 +54,7 @@
     "eslint-config-prettier": "^9.1.0",
     "husky": "^9.1.0",
     "lint-staged": "^15.2.0",
+    "markdownlint-cli2": "^0.20.0",
     "msw": "^2.6.0",
     "prettier": "^3.4.0",
     "tsx": "^4.19.0",
@@ -61,6 +64,10 @@
   "lint-staged": {
     "*.ts": [
       "eslint --fix",
+      "prettier --write"
+    ],
+    "*.md": [
+      "markdownlint-cli2 --fix",
       "prettier --write"
     ]
   }
