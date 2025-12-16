@@ -254,7 +254,7 @@ Once configured, try these prompts with your AI assistant:
 |----------|-------------|----------|
 | `NAPKIN_API_KEY` | Napkin AI API key | Yes |
 | `NAPKIN_API_BASE_URL` | Custom API base URL | No |
-| `NAPKIN_STORAGE_TYPE` | Storage type: `local`, `s3`, `google-drive`, `slack`, `notion` | No |
+| `NAPKIN_STORAGE_TYPE` | Storage type: `local`, `s3`, `google-drive`, `slack`, `notion`, `telegram`, `discord` | No |
 | `NAPKIN_POLLING_INTERVAL` | Polling interval in ms (default: 2000) | No |
 | `NAPKIN_MAX_WAIT_TIME` | Max wait time in ms (default: 300000) | No |
 
@@ -355,6 +355,45 @@ NAPKIN_STORAGE_NOTION_DATABASE_ID=optional-db-id  # Optional
 4. Get the page ID from the URL: `https://notion.so/Page-Name-{PAGE_ID}` (the 32-character ID at the end)
 
 **Note:** Notion has file size limits. For large visuals, consider using S3 or Google Drive.
+
+#### Telegram
+
+Send visuals to a Telegram chat or channel:
+
+```bash
+NAPKIN_STORAGE_TYPE=telegram
+NAPKIN_STORAGE_TELEGRAM_BOT_TOKEN=123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11
+NAPKIN_STORAGE_TELEGRAM_CHAT_ID=-1001234567890
+```
+
+**Setup steps:**
+1. Message [@BotFather](https://t.me/BotFather) on Telegram and create a new bot with `/newbot`
+2. Copy the bot token (format: `123456789:ABCdefGHIjklMNOpqrsTUVwxyz`)
+3. Add the bot to your group/channel as an admin (for channels) or member (for groups)
+4. Get the chat ID:
+   - For **groups**: Add [@userinfobot](https://t.me/userinfobot) to the group, it will show the chat ID
+   - For **channels**: Forward a message from the channel to [@userinfobot](https://t.me/userinfobot)
+   - For **private chats**: Send a message to your bot, then visit `https://api.telegram.org/bot<TOKEN>/getUpdates`
+
+**Note:** Channel IDs start with `-100`, group IDs are negative numbers, user IDs are positive.
+
+#### Discord
+
+Send visuals to a Discord channel via webhook:
+
+```bash
+NAPKIN_STORAGE_TYPE=discord
+NAPKIN_STORAGE_DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/123456789/abcdef...
+NAPKIN_STORAGE_DISCORD_USERNAME=Napkin AI  # Optional
+```
+
+**Setup steps:**
+1. Open Discord and go to the channel where you want to receive visuals
+2. Click the gear icon (Edit Channel) → Integrations → Webhooks → New Webhook
+3. Give it a name and optionally upload an avatar
+4. Click "Copy Webhook URL"
+
+**Note:** No bot setup required - webhooks are the simplest way to post to Discord.
 
 ### Default Visual Settings
 

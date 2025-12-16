@@ -57,6 +57,10 @@ export const ENV_VARS = {
   NAPKIN_STORAGE_NOTION_TOKEN: "NAPKIN_STORAGE_NOTION_TOKEN",
   NAPKIN_STORAGE_NOTION_PAGE_ID: "NAPKIN_STORAGE_NOTION_PAGE_ID",
   NAPKIN_STORAGE_NOTION_DATABASE_ID: "NAPKIN_STORAGE_NOTION_DATABASE_ID",
+  NAPKIN_STORAGE_TELEGRAM_BOT_TOKEN: "NAPKIN_STORAGE_TELEGRAM_BOT_TOKEN",
+  NAPKIN_STORAGE_TELEGRAM_CHAT_ID: "NAPKIN_STORAGE_TELEGRAM_CHAT_ID",
+  NAPKIN_STORAGE_DISCORD_WEBHOOK_URL: "NAPKIN_STORAGE_DISCORD_WEBHOOK_URL",
+  NAPKIN_STORAGE_DISCORD_USERNAME: "NAPKIN_STORAGE_DISCORD_USERNAME",
   AWS_ACCESS_KEY_ID: "AWS_ACCESS_KEY_ID",
   AWS_SECRET_ACCESS_KEY: "AWS_SECRET_ACCESS_KEY",
   NAPKIN_POLLING_INTERVAL: "NAPKIN_POLLING_INTERVAL",
@@ -149,6 +153,35 @@ function buildStorageConfigFromEnv(): StorageConfig | undefined {
         token,
         pageId,
         databaseId: process.env[ENV_VARS.NAPKIN_STORAGE_NOTION_DATABASE_ID],
+      };
+    }
+
+    case "telegram": {
+      const botToken = process.env[ENV_VARS.NAPKIN_STORAGE_TELEGRAM_BOT_TOKEN];
+      const chatId = process.env[ENV_VARS.NAPKIN_STORAGE_TELEGRAM_CHAT_ID];
+      if (!botToken || !chatId) {
+        throw new Error(
+          `${ENV_VARS.NAPKIN_STORAGE_TELEGRAM_BOT_TOKEN} and ${ENV_VARS.NAPKIN_STORAGE_TELEGRAM_CHAT_ID} are required when storage type is 'telegram'`
+        );
+      }
+      return {
+        type: "telegram",
+        botToken,
+        chatId,
+      };
+    }
+
+    case "discord": {
+      const webhookUrl = process.env[ENV_VARS.NAPKIN_STORAGE_DISCORD_WEBHOOK_URL];
+      if (!webhookUrl) {
+        throw new Error(
+          `${ENV_VARS.NAPKIN_STORAGE_DISCORD_WEBHOOK_URL} is required when storage type is 'discord'`
+        );
+      }
+      return {
+        type: "discord",
+        webhookUrl,
+        username: process.env[ENV_VARS.NAPKIN_STORAGE_DISCORD_USERNAME],
       };
     }
 

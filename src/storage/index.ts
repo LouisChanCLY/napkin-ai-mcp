@@ -5,6 +5,8 @@ import { S3StorageProvider, S3StorageConfigSchema } from "./s3.js";
 import { GoogleDriveStorageProvider, GoogleDriveStorageConfigSchema } from "./google-drive.js";
 import { SlackStorageProvider, SlackStorageConfigSchema } from "./slack.js";
 import { NotionStorageProvider, NotionStorageConfigSchema } from "./notion.js";
+import { TelegramStorageProvider, TelegramStorageConfigSchema } from "./telegram.js";
+import { DiscordStorageProvider, DiscordStorageConfigSchema } from "./discord.js";
 
 export type { StorageProvider, StoreFileInput, StorageResult } from "./types.js";
 export { LocalStorageProvider, LocalStorageConfigSchema } from "./local.js";
@@ -12,6 +14,8 @@ export { S3StorageProvider, S3StorageConfigSchema } from "./s3.js";
 export { GoogleDriveStorageProvider, GoogleDriveStorageConfigSchema } from "./google-drive.js";
 export { SlackStorageProvider, SlackStorageConfigSchema } from "./slack.js";
 export { NotionStorageProvider, NotionStorageConfigSchema } from "./notion.js";
+export { TelegramStorageProvider, TelegramStorageConfigSchema } from "./telegram.js";
+export { DiscordStorageProvider, DiscordStorageConfigSchema } from "./discord.js";
 
 /**
  * Union schema for all storage configurations.
@@ -22,6 +26,8 @@ export const StorageConfigSchema = z.discriminatedUnion("type", [
   GoogleDriveStorageConfigSchema.extend({ type: z.literal("google-drive") }),
   SlackStorageConfigSchema.extend({ type: z.literal("slack") }),
   NotionStorageConfigSchema.extend({ type: z.literal("notion") }),
+  TelegramStorageConfigSchema.extend({ type: z.literal("telegram") }),
+  DiscordStorageConfigSchema.extend({ type: z.literal("discord") }),
 ]);
 
 export type StorageConfig = z.infer<typeof StorageConfigSchema>;
@@ -65,6 +71,12 @@ export function createStorageProvider(config: StorageConfig): StorageProvider {
     case "notion":
       return new NotionStorageProvider(parsed);
 
+    case "telegram":
+      return new TelegramStorageProvider(parsed);
+
+    case "discord":
+      return new DiscordStorageProvider(parsed);
+
     default: {
       const exhaustiveCheck: never = parsed;
       throw new Error(`Unknown storage type: ${JSON.stringify(exhaustiveCheck)}`);
@@ -75,5 +87,13 @@ export function createStorageProvider(config: StorageConfig): StorageProvider {
 /**
  * List of all supported storage provider types.
  */
-export const STORAGE_TYPES = ["local", "s3", "google-drive", "slack", "notion"] as const;
+export const STORAGE_TYPES = [
+  "local",
+  "s3",
+  "google-drive",
+  "slack",
+  "notion",
+  "telegram",
+  "discord",
+] as const;
 export type StorageType = (typeof STORAGE_TYPES)[number];

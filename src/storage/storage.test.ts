@@ -138,6 +138,27 @@ describe("createStorageProvider", () => {
     expect(provider.type).toBe("notion");
   });
 
+  it("should create TelegramStorageProvider", () => {
+    const config: StorageConfig = {
+      type: "telegram",
+      botToken: "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11",
+      chatId: "-1001234567890",
+    };
+
+    const provider = createStorageProvider(config);
+    expect(provider.type).toBe("telegram");
+  });
+
+  it("should create DiscordStorageProvider", () => {
+    const config: StorageConfig = {
+      type: "discord",
+      webhookUrl: "https://discord.com/api/webhooks/123456/abcdef",
+    };
+
+    const provider = createStorageProvider(config);
+    expect(provider.type).toBe("discord");
+  });
+
   it("should reject invalid configuration", () => {
     expect(() =>
       createStorageProvider({
@@ -267,6 +288,70 @@ describe("NotionStorageProvider", () => {
         type: "notion",
         token: "",
         pageId: "test-page",
+      } as StorageConfig)
+    ).toThrow();
+  });
+});
+
+describe("TelegramStorageProvider", () => {
+  it("should be configured with bot token and chat ID", () => {
+    const provider = createStorageProvider({
+      type: "telegram",
+      botToken: "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11",
+      chatId: "-1001234567890",
+    });
+
+    expect(provider.isConfigured()).toBe(true);
+  });
+
+  it("should accept optional caption template", () => {
+    const provider = createStorageProvider({
+      type: "telegram",
+      botToken: "123456:ABC-DEF1234ghIkl",
+      chatId: "123456789",
+      captionTemplate: "New visual: {filename}",
+    });
+
+    expect(provider.isConfigured()).toBe(true);
+  });
+
+  it("should validate required fields", () => {
+    expect(() =>
+      createStorageProvider({
+        type: "telegram",
+        botToken: "",
+        chatId: "123",
+      } as StorageConfig)
+    ).toThrow();
+  });
+});
+
+describe("DiscordStorageProvider", () => {
+  it("should be configured with webhook URL", () => {
+    const provider = createStorageProvider({
+      type: "discord",
+      webhookUrl: "https://discord.com/api/webhooks/123456/abcdef",
+    });
+
+    expect(provider.isConfigured()).toBe(true);
+  });
+
+  it("should accept optional username and avatar", () => {
+    const provider = createStorageProvider({
+      type: "discord",
+      webhookUrl: "https://discord.com/api/webhooks/123456/abcdef",
+      username: "Napkin AI Bot",
+      avatarUrl: "https://example.com/avatar.png",
+    });
+
+    expect(provider.isConfigured()).toBe(true);
+  });
+
+  it("should validate webhook URL format", () => {
+    expect(() =>
+      createStorageProvider({
+        type: "discord",
+        webhookUrl: "not-a-valid-url",
       } as StorageConfig)
     ).toThrow();
   });
