@@ -15,15 +15,22 @@ An MCP (Model Context Protocol) server for generating infographics and visuals u
 ## Features
 
 - **Visual Generation**: Generate SVG, PNG, or PPT visuals from text content
-- **Multiple Visual Types**: Mindmaps, flowcharts, timelines, comparisons, and more
+- **Multiple Visual Types**: Mindmaps, flowcharts, timelines, comparisons, and more ([see gallery](https://www.napkin.ai/gallery))
 - **Async Handling**: Automatic polling for Napkin AI's async generation
 - **Multi-Storage Support**: Save generated visuals to:
   - Local filesystem
   - Amazon S3 (or S3-compatible services)
   - Google Drive
   - Slack
+  - Notion
+  - Telegram
+  - Discord
 - **Flexible Configuration**: Environment variables or JSON config file
 - **Full TypeScript Support**: Comprehensive type definitions with Zod validation
+- **Automatic Retries**: Exponential backoff for transient failures (429, 5xx)
+- **Debug Logging**: Set `NAPKIN_DEBUG=true` for troubleshooting
+- **Dry-Run Mode**: Validate requests without calling the API
+- **CLI Help**: Run with `--help` for usage information
 
 ## Prerequisites
 
@@ -240,6 +247,7 @@ Once configured, your AI assistant will have access to these tools:
 | `generate_and_wait` | Generate and wait for completion |
 | `generate_and_save` | Generate and save to configured storage |
 | `list_styles` | Get information about available styles |
+| `verify_api_key` | Verify your API key is valid and working |
 
 ### Example Prompts
 
@@ -439,6 +447,7 @@ Create a `config.json` file:
 |-----------|------|-------------|
 | `content` | string | **Required**. Text content to visualise |
 | `format` | string | Output format: `svg`, `png`, or `ppt` (default: `svg`) |
+| `dry_run` | boolean | Validate request without calling API (default: `false`) |
 | `context` | string | Additional context for generation (not shown in visual) |
 | `language` | string | BCP 47 language tag (e.g., `en-GB`). Default: `en` |
 | `style_id` | string | Napkin AI style identifier. See [styles](https://api.napkin.ai/docs/styles) |
@@ -541,7 +550,9 @@ Increase `NAPKIN_MAX_WAIT_TIME` (default: 300000ms = 5 minutes).
 
 ## API Reference
 
-- [Napkin AI API Documentation](https://api.napkin.ai/docs)
+- [Napkin AI Website](https://napkin.ai)
+- [Visual Gallery](https://www.napkin.ai/gallery) - See examples of generated visuals
+- [API Documentation](https://api.napkin.ai/docs)
 - [Available Styles](https://api.napkin.ai/docs/styles/index.html)
 - [MCP Specification](https://modelcontextprotocol.io)
 
