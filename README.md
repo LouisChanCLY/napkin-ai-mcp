@@ -322,22 +322,29 @@ Create a `config.json` file:
 
 ## Tool Parameters
 
-### generate_visual / generate_and_wait
+### generate_visual / generate_and_wait / generate_and_save
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `content` | string | **Required**. Text content to visualise |
-| `format` | string | Output format: `svg`, `png`, or `ppt` |
-| `context` | string | Additional context for generation |
-| `language` | string | BCP 47 language tag (e.g., `en-GB`) |
-| `style_id` | string | Napkin AI style identifier |
+| `format` | string | Output format: `svg`, `png`, or `ppt` (default: `svg`) |
+| `context` | string | Additional context for generation (not shown in visual) |
+| `language` | string | BCP 47 language tag (e.g., `en-GB`). Default: `en` |
+| `style_id` | string | Napkin AI style identifier. See [styles](https://api.napkin.ai/docs/styles) |
+| `visual_id` | string | Regenerate a specific visual layout with new content |
+| `visual_ids` | string[] | Array of visual IDs (length must match `number_of_visuals`) |
 | `visual_query` | string | Visual type: `mindmap`, `flowchart`, `timeline`, etc. |
-| `number_of_visuals` | number | Variations to generate (1-4) |
-| `transparent_background` | boolean | Use transparent background |
-| `color_mode` | string | `light`, `dark`, or `both` |
-| `width` | number | Width in pixels (PNG only) |
-| `height` | number | Height in pixels (PNG only) |
+| `visual_queries` | string[] | Array of visual queries (length must match `number_of_visuals`) |
+| `number_of_visuals` | number | Variations to generate (1-4, default: 1) |
+| `transparent_background` | boolean | Use transparent background (default: false) |
+| `color_mode` | string | `light`, `dark`, or `both` (default: `light`) |
+| `width` | number | Width in pixels (PNG only, 100-10000) |
+| `height` | number | Height in pixels (PNG only, 100-10000) |
 | `orientation` | string | `auto`, `horizontal`, `vertical`, or `square` |
+| `text_extraction_mode` | string | `auto`, `rewrite`, or `preserve` (default: `auto`) |
+| `sort_strategy` | string | `relevance` or `random` (default: `relevance`) |
+
+**Note**: `visual_id`/`visual_ids` and `visual_query`/`visual_queries` are mutually exclusive.
 
 ### Visual Query Types
 
@@ -368,8 +375,11 @@ const result = await client.generateAndWait({
   visual_query: "mindmap",
 });
 
-// Download the file
-const buffer = await client.downloadFile(result.id, result.files[0].id);
+// Download the file using the URL from generated_files
+if (result.generated_files && result.generated_files.length > 0) {
+  const buffer = await client.downloadFile(result.generated_files[0].url);
+  // buffer contains the SVG content
+}
 ```
 
 ---

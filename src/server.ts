@@ -76,10 +76,26 @@ export function createNapkinMcpServer(config: NapkinMcpServerConfig): McpServer 
     context: z.string().optional().describe("Additional context for visual generation"),
     language: z.string().optional().describe("BCP 47 language tag (e.g., en, en-GB). Default: en"),
     style_id: z.string().optional().describe("Style identifier from Napkin AI"),
+    visual_id: z
+      .string()
+      .optional()
+      .describe(
+        "Regenerate a specific visual layout with new content. Cannot be used with visual_ids, visual_query, or visual_queries."
+      ),
+    visual_ids: z
+      .array(z.string())
+      .optional()
+      .describe(
+        "Array of visual IDs to regenerate specific layouts. Length must match number_of_visuals."
+      ),
     visual_query: z
       .string()
       .optional()
       .describe("Visual type query (e.g., mindmap, flowchart, timeline)"),
+    visual_queries: z
+      .array(z.string())
+      .optional()
+      .describe("Array of visual type queries. Length must match number_of_visuals."),
     number_of_visuals: z
       .number()
       .int()
@@ -121,7 +137,10 @@ export function createNapkinMcpServer(config: NapkinMcpServerConfig): McpServer 
         context: input.context ?? defaults.context,
         language: input.language ?? defaults.language ?? "en",
         style_id: input.style_id ?? defaults.style_id,
+        visual_id: input.visual_id,
+        visual_ids: input.visual_ids,
         visual_query: input.visual_query,
+        visual_queries: input.visual_queries,
         number_of_visuals: input.number_of_visuals,
         transparent_background: input.transparent_background,
         color_mode: input.color_mode ?? defaults.color_mode,
@@ -243,7 +262,10 @@ export function createNapkinMcpServer(config: NapkinMcpServerConfig): McpServer 
         context: input.context ?? defaults.context,
         language: input.language ?? defaults.language ?? "en",
         style_id: input.style_id ?? defaults.style_id,
+        visual_id: input.visual_id,
+        visual_ids: input.visual_ids,
         visual_query: input.visual_query,
+        visual_queries: input.visual_queries,
         number_of_visuals: input.number_of_visuals,
         transparent_background: input.transparent_background,
         color_mode: input.color_mode ?? defaults.color_mode,
@@ -305,7 +327,10 @@ export function createNapkinMcpServer(config: NapkinMcpServerConfig): McpServer 
         context: input.context ?? defaults.context,
         language: input.language ?? defaults.language ?? "en",
         style_id: input.style_id ?? defaults.style_id,
+        visual_id: input.visual_id,
+        visual_ids: input.visual_ids,
         visual_query: input.visual_query,
+        visual_queries: input.visual_queries,
         number_of_visuals: input.number_of_visuals,
         transparent_background: input.transparent_background,
         color_mode: input.color_mode ?? defaults.color_mode,
