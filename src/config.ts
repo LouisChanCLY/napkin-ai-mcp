@@ -49,10 +49,14 @@ export const ENV_VARS = {
   NAPKIN_STORAGE_S3_BUCKET: "NAPKIN_STORAGE_S3_BUCKET",
   NAPKIN_STORAGE_S3_PREFIX: "NAPKIN_STORAGE_S3_PREFIX",
   NAPKIN_STORAGE_S3_REGION: "NAPKIN_STORAGE_S3_REGION",
+  NAPKIN_STORAGE_S3_ENDPOINT: "NAPKIN_STORAGE_S3_ENDPOINT",
   NAPKIN_STORAGE_GDRIVE_FOLDER_ID: "NAPKIN_STORAGE_GDRIVE_FOLDER_ID",
   NAPKIN_STORAGE_GDRIVE_CREDENTIALS: "NAPKIN_STORAGE_GDRIVE_CREDENTIALS",
   NAPKIN_STORAGE_SLACK_CHANNEL: "NAPKIN_STORAGE_SLACK_CHANNEL",
   NAPKIN_STORAGE_SLACK_TOKEN: "NAPKIN_STORAGE_SLACK_TOKEN",
+  NAPKIN_STORAGE_NOTION_TOKEN: "NAPKIN_STORAGE_NOTION_TOKEN",
+  NAPKIN_STORAGE_NOTION_PAGE_ID: "NAPKIN_STORAGE_NOTION_PAGE_ID",
+  NAPKIN_STORAGE_NOTION_DATABASE_ID: "NAPKIN_STORAGE_NOTION_DATABASE_ID",
   AWS_ACCESS_KEY_ID: "AWS_ACCESS_KEY_ID",
   AWS_SECRET_ACCESS_KEY: "AWS_SECRET_ACCESS_KEY",
   NAPKIN_POLLING_INTERVAL: "NAPKIN_POLLING_INTERVAL",
@@ -98,6 +102,7 @@ function buildStorageConfigFromEnv(): StorageConfig | undefined {
         bucket,
         region,
         prefix: process.env[ENV_VARS.NAPKIN_STORAGE_S3_PREFIX],
+        endpoint: process.env[ENV_VARS.NAPKIN_STORAGE_S3_ENDPOINT],
         accessKeyId: process.env[ENV_VARS.AWS_ACCESS_KEY_ID],
         secretAccessKey: process.env[ENV_VARS.AWS_SECRET_ACCESS_KEY],
       };
@@ -128,6 +133,22 @@ function buildStorageConfigFromEnv(): StorageConfig | undefined {
         type: "slack",
         channelId,
         token: process.env[ENV_VARS.NAPKIN_STORAGE_SLACK_TOKEN],
+      };
+    }
+
+    case "notion": {
+      const token = process.env[ENV_VARS.NAPKIN_STORAGE_NOTION_TOKEN];
+      const pageId = process.env[ENV_VARS.NAPKIN_STORAGE_NOTION_PAGE_ID];
+      if (!token || !pageId) {
+        throw new Error(
+          `${ENV_VARS.NAPKIN_STORAGE_NOTION_TOKEN} and ${ENV_VARS.NAPKIN_STORAGE_NOTION_PAGE_ID} are required when storage type is 'notion'`
+        );
+      }
+      return {
+        type: "notion",
+        token,
+        pageId,
+        databaseId: process.env[ENV_VARS.NAPKIN_STORAGE_NOTION_DATABASE_ID],
       };
     }
 

@@ -254,41 +254,107 @@ Once configured, try these prompts with your AI assistant:
 |----------|-------------|----------|
 | `NAPKIN_API_KEY` | Napkin AI API key | Yes |
 | `NAPKIN_API_BASE_URL` | Custom API base URL | No |
-| `NAPKIN_STORAGE_TYPE` | Storage type: `local`, `s3`, `google-drive`, `slack` | No |
+| `NAPKIN_STORAGE_TYPE` | Storage type: `local`, `s3`, `google-drive`, `slack`, `notion` | No |
 | `NAPKIN_POLLING_INTERVAL` | Polling interval in ms (default: 2000) | No |
 | `NAPKIN_MAX_WAIT_TIME` | Max wait time in ms (default: 300000) | No |
 
 ### Storage Configuration
 
 #### Local Storage
+
+Save visuals to a local directory:
+
 ```bash
 NAPKIN_STORAGE_TYPE=local
 NAPKIN_STORAGE_LOCAL_DIR=./output
 ```
 
+Files are saved with the format: `napkin-{request_id}-{index}-{color_mode}.{format}`
+
 #### Amazon S3
+
+Save visuals to an S3 bucket (also works with S3-compatible services like MinIO, DigitalOcean Spaces, Cloudflare R2):
+
 ```bash
 NAPKIN_STORAGE_TYPE=s3
 NAPKIN_STORAGE_S3_BUCKET=my-bucket
 NAPKIN_STORAGE_S3_REGION=eu-west-1
-NAPKIN_STORAGE_S3_PREFIX=napkin-visuals/  # Optional
+NAPKIN_STORAGE_S3_PREFIX=napkin-visuals/  # Optional path prefix
+NAPKIN_STORAGE_S3_ENDPOINT=https://s3.example.com  # Optional, for S3-compatible services
 AWS_ACCESS_KEY_ID=your-access-key
 AWS_SECRET_ACCESS_KEY=your-secret-key
 ```
 
+**Required IAM permissions:**
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": ["s3:PutObject", "s3:GetObject"],
+    "Resource": "arn:aws:s3:::my-bucket/napkin-visuals/*"
+  }]
+}
+```
+
 #### Google Drive
+
+Save visuals to a Google Drive folder using a service account:
+
 ```bash
 NAPKIN_STORAGE_TYPE=google-drive
-NAPKIN_STORAGE_GDRIVE_FOLDER_ID=folder-id
+NAPKIN_STORAGE_GDRIVE_FOLDER_ID=1ABC...xyz
 NAPKIN_STORAGE_GDRIVE_CREDENTIALS=./service-account.json
 ```
 
+**Setup steps:**
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select an existing one
+3. Enable the Google Drive API
+4. Go to "IAM & Admin" → "Service Accounts" → "Create Service Account"
+5. Download the JSON key file and save as `service-account.json`
+6. Share your target Google Drive folder with the service account email (ends with `@*.iam.gserviceaccount.com`)
+7. Get the folder ID from the URL: `https://drive.google.com/drive/folders/{FOLDER_ID}`
+
 #### Slack
+
+Upload visuals to a Slack channel:
+
 ```bash
 NAPKIN_STORAGE_TYPE=slack
 NAPKIN_STORAGE_SLACK_CHANNEL=C0123456789
-NAPKIN_STORAGE_SLACK_TOKEN=xoxb-your-token
+NAPKIN_STORAGE_SLACK_TOKEN=xoxb-your-bot-token
 ```
+
+**Setup steps:**
+1. Go to [Slack API](https://api.slack.com/apps) and create a new app
+2. Under "OAuth & Permissions", add these Bot Token Scopes:
+   - `files:write` - Upload files
+   - `chat:write` - Post messages (optional)
+3. Install the app to your workspace
+4. Copy the "Bot User OAuth Token" (starts with `xoxb-`)
+5. Get the channel ID: right-click a channel → "View channel details" → scroll to the bottom
+
+**Note:** The bot must be invited to the channel with `/invite @your-bot-name`
+
+#### Notion
+
+Upload visuals to a Notion page:
+
+```bash
+NAPKIN_STORAGE_TYPE=notion
+NAPKIN_STORAGE_NOTION_TOKEN=secret_abc123...
+NAPKIN_STORAGE_NOTION_PAGE_ID=12345678-abcd-1234-abcd-123456789abc
+NAPKIN_STORAGE_NOTION_DATABASE_ID=optional-db-id  # Optional
+```
+
+**Setup steps:**
+1. Go to [Notion Integrations](https://www.notion.so/my-integrations) and create a new integration
+2. Copy the "Internal Integration Token" (starts with `secret_`)
+3. Open the target Notion page and click "..." → "Add connections" → select your integration
+4. Get the page ID from the URL: `https://notion.so/Page-Name-{PAGE_ID}` (the 32-character ID at the end)
+
+**Note:** Notion has file size limits. For large visuals, consider using S3 or Google Drive.
 
 ### Default Visual Settings
 

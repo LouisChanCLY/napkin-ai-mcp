@@ -127,6 +127,17 @@ describe("createStorageProvider", () => {
     expect(provider.type).toBe("slack");
   });
 
+  it("should create NotionStorageProvider", () => {
+    const config: StorageConfig = {
+      type: "notion",
+      token: "secret_test123",
+      pageId: "12345678-abcd-1234-abcd-123456789abc",
+    };
+
+    const provider = createStorageProvider(config);
+    expect(provider.type).toBe("notion");
+  });
+
   it("should reject invalid configuration", () => {
     expect(() =>
       createStorageProvider({
@@ -225,5 +236,38 @@ describe("SlackStorageProvider", () => {
     });
 
     expect(provider.isConfigured()).toBe(false);
+  });
+});
+
+describe("NotionStorageProvider", () => {
+  it("should be configured with token and page ID", () => {
+    const provider = createStorageProvider({
+      type: "notion",
+      token: "secret_test123",
+      pageId: "12345678-abcd-1234-abcd-123456789abc",
+    });
+
+    expect(provider.isConfigured()).toBe(true);
+  });
+
+  it("should accept optional database ID", () => {
+    const provider = createStorageProvider({
+      type: "notion",
+      token: "secret_test123",
+      pageId: "12345678-abcd-1234-abcd-123456789abc",
+      databaseId: "db-12345678",
+    });
+
+    expect(provider.isConfigured()).toBe(true);
+  });
+
+  it("should validate required fields", () => {
+    expect(() =>
+      createStorageProvider({
+        type: "notion",
+        token: "",
+        pageId: "test-page",
+      } as StorageConfig)
+    ).toThrow();
   });
 });
