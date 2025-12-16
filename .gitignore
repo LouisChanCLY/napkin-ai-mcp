@@ -7,6 +7,7 @@ build/
 
 # IDE
 .idea/
+.vscode/
 *.swp
 *.swo
 
@@ -31,6 +32,12 @@ Thumbs.db
 
 # TypeScript
 *.tsbuildinfo
+
+# Test output
+test-output/
+test-api.ts
+
+# Claude
 
 # Claude
 CLAUDE.md

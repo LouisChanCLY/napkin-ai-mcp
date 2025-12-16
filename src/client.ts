@@ -149,16 +149,13 @@ export class NapkinClient {
   }
 
   /**
-   * Downloads a generated visual file.
+   * Downloads a generated visual file from a URL.
    *
-   * @param requestId - The request ID from {@link generate}
-   * @param fileId - The file ID from the status response
+   * @param fileUrl - The full URL from the generated_files array
    * @returns The file contents as a Buffer
    */
-  async downloadFile(requestId: string, fileId: string): Promise<Buffer> {
-    const url = `${this.baseUrl}/v1/visual/${requestId}/file/${fileId}`;
-
-    const response = await this.fetchFn(url, {
+  async downloadFile(fileUrl: string): Promise<Buffer> {
+    const response = await this.fetchFn(fileUrl, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${this.apiKey}`,

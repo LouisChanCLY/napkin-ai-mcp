@@ -101,8 +101,13 @@ describe("NapkinClient", () => {
       const mockStatus = {
         id: "req-123",
         status: "completed",
-        progress: 100,
-        files: [{ id: "file-1", format: "svg", visual_id: "vis-1" }],
+        generated_files: [
+          {
+            url: "https://api.napkin.ai/files/file-1.svg",
+            visual_id: "vis-1",
+            color_mode: "light",
+          },
+        ],
       };
 
       mockFetch.mockResolvedValueOnce({
@@ -154,12 +159,13 @@ describe("NapkinClient", () => {
         arrayBuffer: () => Promise.resolve(mockContent),
       });
 
-      const result = await client.downloadFile("req-123", "file-1");
+      const fileUrl = "https://api.napkin.ai/files/file-1.svg";
+      const result = await client.downloadFile(fileUrl);
 
       expect(Buffer.isBuffer(result)).toBe(true);
       expect(result.length).toBe(10);
       expect(mockFetch).toHaveBeenCalledWith(
-        "https://api.test.napkin.ai/v1/visual/req-123/file/file-1",
+        fileUrl,
         expect.objectContaining({
           method: "GET",
           headers: {
@@ -177,7 +183,9 @@ describe("NapkinClient", () => {
         text: () => Promise.resolve("File not found"),
       });
 
-      await expect(client.downloadFile("req-123", "file-1")).rejects.toThrow(NapkinApiError);
+      await expect(client.downloadFile("https://api.napkin.ai/files/missing.svg")).rejects.toThrow(
+        NapkinApiError
+      );
     });
   });
 
@@ -190,7 +198,7 @@ describe("NapkinClient", () => {
         })
         .mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve({ id: "req-123", status: "processing", progress: 50 }),
+          json: () => Promise.resolve({ id: "req-123", status: "processing" }),
         })
         .mockResolvedValueOnce({
           ok: true,
@@ -198,8 +206,9 @@ describe("NapkinClient", () => {
             Promise.resolve({
               id: "req-123",
               status: "completed",
-              progress: 100,
-              files: [{ id: "file-1", format: "svg" }],
+              generated_files: [
+                { url: "https://api.napkin.ai/files/file-1.svg", visual_id: "vis-1" },
+              ],
             }),
         });
 
@@ -209,7 +218,7 @@ describe("NapkinClient", () => {
       );
 
       expect(result.status).toBe("completed");
-      expect(result.files).toHaveLength(1);
+      expect(result.generated_files).toHaveLength(1);
       expect(mockFetch).toHaveBeenCalledTimes(3);
     });
 
@@ -223,7 +232,7 @@ describe("NapkinClient", () => {
         })
         .mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve({ id: "req-123", status: "processing", progress: 50 }),
+          json: () => Promise.resolve({ id: "req-123", status: "processing" }),
         })
         .mockResolvedValueOnce({
           ok: true,
@@ -231,8 +240,7 @@ describe("NapkinClient", () => {
             Promise.resolve({
               id: "req-123",
               status: "completed",
-              progress: 100,
-              files: [],
+              generated_files: [],
             }),
         });
 
@@ -242,9 +250,7 @@ describe("NapkinClient", () => {
       );
 
       expect(onProgress).toHaveBeenCalledTimes(2);
-      expect(onProgress).toHaveBeenCalledWith(
-        expect.objectContaining({ status: "processing", progress: 50 })
-      );
+      expect(onProgress).toHaveBeenCalledWith(expect.objectContaining({ status: "processing" }));
     });
 
     it("should throw on generation failure", async () => {
@@ -276,7 +282,7 @@ describe("NapkinClient", () => {
         })
         .mockResolvedValue({
           ok: true,
-          json: () => Promise.resolve({ id: "req-123", status: "processing", progress: 10 }),
+          json: () => Promise.resolve({ id: "req-123", status: "processing" }),
         });
 
       await expect(

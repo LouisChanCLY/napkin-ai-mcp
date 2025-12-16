@@ -151,23 +151,32 @@ export const GenerateVisualResponseSchema = z.object({
 export type GenerateVisualResponse = z.infer<typeof GenerateVisualResponseSchema>;
 
 /**
- * Individual file information in status response.
+ * Individual generated file information in status response.
  */
-export const FileInfoSchema = z.object({
-  /** File identifier. */
-  id: z.string(),
-
-  /** File format. */
-  format: OutputFormatSchema,
+export const GeneratedFileSchema = z.object({
+  /** Full URL to download the file. */
+  url: z.string().url(),
 
   /** Visual identifier. */
-  visual_id: z.string().optional(),
+  visual_id: z.string(),
+
+  /** Visual query that was used. */
+  visual_query: z.string().optional(),
+
+  /** Style identifier that was used. */
+  style_id: z.string().optional(),
+
+  /** Width of the generated visual in pixels. */
+  width: z.number().optional(),
+
+  /** Height of the generated visual in pixels. */
+  height: z.number().optional(),
 
   /** Colour mode used. */
   color_mode: z.enum(["light", "dark"]).optional(),
 });
 
-export type FileInfo = z.infer<typeof FileInfoSchema>;
+export type GeneratedFile = z.infer<typeof GeneratedFileSchema>;
 
 /**
  * Response from checking visual generation status.
@@ -179,14 +188,11 @@ export const VisualStatusResponseSchema = z.object({
   /** Current status of the request. */
   status: VisualStatusSchema,
 
-  /** Optional warning message. */
-  warning: z.string().optional(),
-
-  /** Progress percentage (0-100). */
-  progress: z.number().optional(),
+  /** Request parameters echoed back. */
+  request: z.record(z.unknown()).optional(),
 
   /** List of generated files when completed. */
-  files: z.array(FileInfoSchema).optional(),
+  generated_files: z.array(GeneratedFileSchema).optional(),
 
   /** Error message if failed. */
   error: z.string().optional(),

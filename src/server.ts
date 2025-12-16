@@ -74,7 +74,7 @@ export function createNapkinMcpServer(config: NapkinMcpServerConfig): McpServer 
       "Output format: svg, png, or ppt (default: svg)"
     ),
     context: z.string().optional().describe("Additional context for visual generation"),
-    language: z.string().optional().describe("BCP 47 language tag (e.g., en-GB, fr-FR)"),
+    language: z.string().optional().describe("BCP 47 language tag (e.g., en, en-GB). Default: en"),
     style_id: z.string().optional().describe("Style identifier from Napkin AI"),
     visual_query: z
       .string()
@@ -119,7 +119,7 @@ export function createNapkinMcpServer(config: NapkinMcpServerConfig): McpServer 
         format: input.format ?? defaults.format ?? "svg",
         content: input.content,
         context: input.context ?? defaults.context,
-        language: input.language ?? defaults.language,
+        language: input.language ?? defaults.language ?? "en",
         style_id: input.style_id ?? defaults.style_id,
         visual_query: input.visual_query,
         number_of_visuals: input.number_of_visuals,
@@ -154,20 +154,21 @@ export function createNapkinMcpServer(config: NapkinMcpServerConfig): McpServer 
       outputSchema: {
         id: z.string(),
         status: z.string().describe("Current status: pending, processing, completed, or failed"),
-        progress: z.number().optional().describe("Progress percentage (0-100)"),
-        files: z
+        generated_files: z
           .array(
             z.object({
-              id: z.string(),
-              format: z.string(),
-              visual_id: z.string().optional(),
+              url: z.string().describe("Download URL for the file"),
+              visual_id: z.string(),
+              visual_query: z.string().optional(),
+              style_id: z.string().optional(),
+              width: z.number().optional(),
+              height: z.number().optional(),
               color_mode: z.string().optional(),
             })
           )
           .optional()
           .describe("Generated files when completed"),
         error: z.string().optional().describe("Error message if failed"),
-        warning: z.string().optional(),
       },
     },
     async ({ request_id }) => {
@@ -186,18 +187,17 @@ export function createNapkinMcpServer(config: NapkinMcpServerConfig): McpServer 
       title: "Download Visual",
       description:
         "Download a generated visual file as base64-encoded data. " +
-        "Use after check_status shows completed status.",
+        "Use the URL from check_status response's generated_files array.",
       inputSchema: {
-        request_id: z.string().describe("Request ID from generate_visual"),
-        file_id: z.string().describe("File ID from check_status response"),
+        file_url: z.string().url().describe("File URL from check_status generated_files"),
       },
       outputSchema: {
         content_base64: z.string().describe("Base64-encoded file content"),
         size_bytes: z.number().describe("File size in bytes"),
       },
     },
-    async ({ request_id, file_id }) => {
-      const buffer = await client.downloadFile(request_id, file_id);
+    async ({ file_url }) => {
+      const buffer = await client.downloadFile(file_url);
       const base64 = buffer.toString("base64");
 
       const output = {
@@ -223,17 +223,17 @@ export function createNapkinMcpServer(config: NapkinMcpServerConfig): McpServer 
       outputSchema: {
         id: z.string(),
         status: z.string(),
-        files: z
+        generated_files: z
           .array(
             z.object({
-              id: z.string(),
-              format: z.string(),
-              visual_id: z.string().optional(),
+              url: z.string(),
+              visual_id: z.string(),
+              width: z.number().optional(),
+              height: z.number().optional(),
               color_mode: z.string().optional(),
             })
           )
-          .describe("Generated files"),
-        warning: z.string().optional(),
+          .describe("Generated files with download URLs"),
       },
     },
     async (input) => {
@@ -241,7 +241,7 @@ export function createNapkinMcpServer(config: NapkinMcpServerConfig): McpServer 
         format: input.format ?? defaults.format ?? "svg",
         content: input.content,
         context: input.context ?? defaults.context,
-        language: input.language ?? defaults.language,
+        language: input.language ?? defaults.language ?? "en",
         style_id: input.style_id ?? defaults.style_id,
         visual_query: input.visual_query,
         number_of_visuals: input.number_of_visuals,
@@ -285,7 +285,7 @@ export function createNapkinMcpServer(config: NapkinMcpServerConfig): McpServer 
         files: z
           .array(
             z.object({
-              file_id: z.string(),
+              visual_id: z.string(),
               storage_location: z.string(),
               public_url: z.string().optional(),
             })
@@ -303,7 +303,7 @@ export function createNapkinMcpServer(config: NapkinMcpServerConfig): McpServer 
         format,
         content: input.content,
         context: input.context ?? defaults.context,
-        language: input.language ?? defaults.language,
+        language: input.language ?? defaults.language ?? "en",
         style_id: input.style_id ?? defaults.style_id,
         visual_query: input.visual_query,
         number_of_visuals: input.number_of_visuals,
@@ -321,7 +321,7 @@ export function createNapkinMcpServer(config: NapkinMcpServerConfig): McpServer 
         maxWaitTime,
       });
 
-      if (!status.files || status.files.length === 0) {
+      if (!status.generated_files || status.generated_files.length === 0) {
         throw new Error("No files generated");
       }
 
@@ -332,27 +332,26 @@ export function createNapkinMcpServer(config: NapkinMcpServerConfig): McpServer 
       };
 
       const savedFiles = await Promise.all(
-        status.files.map(async (file, index) => {
-          const buffer = await client.downloadFile(status.id, file.id);
+        status.generated_files.map(async (file, index) => {
+          const buffer = await client.downloadFile(file.url);
 
           const baseFilename = input.filename ?? `napkin-${status.id}`;
-          const suffix = status.files!.length > 1 ? `-${index + 1}` : "";
+          const suffix = status.generated_files!.length > 1 ? `-${index + 1}` : "";
           const colourSuffix = file.color_mode ? `-${file.color_mode}` : "";
-          const filename = `${baseFilename}${suffix}${colourSuffix}.${file.format}`;
+          const filename = `${baseFilename}${suffix}${colourSuffix}.${format}`;
 
           const result = await storageProvider!.store({
             content: buffer,
             filename,
-            mimeType: mimeTypes[file.format] ?? "application/octet-stream",
+            mimeType: mimeTypes[format] ?? "application/octet-stream",
             metadata: {
               request_id: status.id,
-              file_id: file.id,
               visual_id: file.visual_id,
             },
           });
 
           return {
-            file_id: file.id,
+            visual_id: file.visual_id,
             storage_location: result.location,
             public_url: result.publicUrl,
           };
