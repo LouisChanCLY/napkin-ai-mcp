@@ -1,17 +1,22 @@
 # Napkin AI MCP Server
 
-An MCP (Model Context Protocol) server for generating infographics and visuals using the [Napkin AI](https://napkin.ai) API. This server enables AI assistants like Claude to generate professional visuals from text content and save them to various storage backends.
+[![CI](https://github.com/your-username/napkin-ai-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/your-username/napkin-ai-mcp/actions/workflows/ci.yml)
+[![npm version](https://badge.fury.io/js/napkin-ai-mcp.svg)](https://www.npmjs.com/package/napkin-ai-mcp)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+An MCP (Model Context Protocol) server for generating infographics and visuals using the [Napkin AI](https://napkin.ai) API. This server enables AI assistants like Claude to generate professional visuals from text content.
 
 ## Features
 
 - **Visual Generation**: Generate SVG, PNG, or PPT visuals from text content
-- **Async Polling**: Handles Napkin AI's async generation with automatic polling
+- **Multiple Visual Types**: Mindmaps, flowcharts, timelines, comparisons, and more
+- **Async Handling**: Automatic polling for Napkin AI's async generation
 - **Multi-Storage Support**: Save generated visuals to:
   - Local filesystem
   - Amazon S3 (or S3-compatible services)
   - Google Drive
   - Slack
-- **Flexible Configuration**: Configure via environment variables or JSON config file
+- **Flexible Configuration**: Environment variables or JSON config file
 - **Full TypeScript Support**: Comprehensive type definitions with Zod validation
 
 ## Prerequisites
@@ -19,198 +24,333 @@ An MCP (Model Context Protocol) server for generating infographics and visuals u
 - Node.js 18.x or later
 - A Napkin AI API key (currently in developer preview - contact api@napkin.ai)
 
-## Installation
+## Quick Start
+
+### Installation
 
 ```bash
-npm install napkin-ai-mcp
+npm install -g napkin-ai-mcp
 ```
 
-Or clone and build from source:
+Or use directly with npx:
 
 ```bash
-git clone https://github.com/your-username/napkin-ai-mcp.git
-cd napkin-ai-mcp
-npm install
-npm run build
+npx napkin-ai-mcp
 ```
 
-## Configuration
+### Get Your API Key
 
-### Environment Variables
+The Napkin AI API is currently in developer preview. To request access:
+1. Visit [napkin.ai](https://napkin.ai)
+2. Contact api@napkin.ai for API access
 
-The minimum required configuration is your Napkin AI API key:
+---
 
-```bash
-export NAPKIN_API_KEY="your-api-key"
-```
+## Integration Guides
 
-#### All Environment Variables
+### Claude Desktop
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `NAPKIN_API_KEY` | Napkin AI API key | Yes |
-| `NAPKIN_API_BASE_URL` | Custom API base URL | No |
-| `NAPKIN_CONFIG_PATH` | Path to JSON config file | No |
-| `NAPKIN_POLLING_INTERVAL` | Polling interval in ms (default: 2000) | No |
-| `NAPKIN_MAX_WAIT_TIME` | Max wait time in ms (default: 300000) | No |
+Add to your Claude Desktop configuration file:
 
-#### Storage Configuration
-
-**Local Storage:**
-```bash
-export NAPKIN_STORAGE_TYPE="local"
-export NAPKIN_STORAGE_LOCAL_DIR="./output"
-```
-
-**S3 Storage:**
-```bash
-export NAPKIN_STORAGE_TYPE="s3"
-export NAPKIN_STORAGE_S3_BUCKET="my-bucket"
-export NAPKIN_STORAGE_S3_REGION="eu-west-1"
-export NAPKIN_STORAGE_S3_PREFIX="napkin-visuals/"  # Optional
-export AWS_ACCESS_KEY_ID="your-access-key"
-export AWS_SECRET_ACCESS_KEY="your-secret-key"
-```
-
-**Google Drive Storage:**
-```bash
-export NAPKIN_STORAGE_TYPE="google-drive"
-export NAPKIN_STORAGE_GDRIVE_FOLDER_ID="folder-id"
-export NAPKIN_STORAGE_GDRIVE_CREDENTIALS="./service-account.json"
-```
-
-**Slack Storage:**
-```bash
-export NAPKIN_STORAGE_TYPE="slack"
-export NAPKIN_STORAGE_SLACK_CHANNEL="C0123456789"
-export NAPKIN_STORAGE_SLACK_TOKEN="xoxb-your-token"
-```
-
-#### Default Visual Settings
-
-```bash
-export NAPKIN_DEFAULT_FORMAT="svg"       # svg, png, or ppt
-export NAPKIN_DEFAULT_LANGUAGE="en-GB"   # BCP 47 language tag
-export NAPKIN_DEFAULT_STYLE_ID="STYLE123"
-export NAPKIN_DEFAULT_COLOR_MODE="light" # light, dark, or both
-export NAPKIN_DEFAULT_ORIENTATION="auto" # auto, horizontal, vertical, or square
-```
-
-### JSON Configuration
-
-Create a `config.json` file in the working directory or specify a path with `NAPKIN_CONFIG_PATH`:
-
-```json
-{
-  "napkinApiKey": "your-api-key",
-  "storage": {
-    "type": "s3",
-    "bucket": "my-bucket",
-    "region": "eu-west-1",
-    "prefix": "napkin-visuals/"
-  },
-  "defaults": {
-    "format": "svg",
-    "language": "en-GB",
-    "color_mode": "light"
-  },
-  "pollingInterval": 2000,
-  "maxWaitTime": 300000
-}
-```
-
-## Usage
-
-### Running the Server
-
-```bash
-# With environment variables
-NAPKIN_API_KEY="your-key" npx napkin-ai-mcp
-
-# Or if installed globally
-napkin-ai-mcp
-```
-
-### MCP Client Configuration
-
-Add to your MCP client configuration (e.g., Claude Desktop):
+**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+**Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 
 ```json
 {
   "mcpServers": {
     "napkin-ai": {
       "command": "npx",
-      "args": ["napkin-ai-mcp"],
+      "args": ["-y", "napkin-ai-mcp"],
       "env": {
-        "NAPKIN_API_KEY": "your-api-key",
-        "NAPKIN_STORAGE_TYPE": "local",
-        "NAPKIN_STORAGE_LOCAL_DIR": "./output"
+        "NAPKIN_API_KEY": "your-api-key-here"
       }
     }
   }
 }
 ```
 
-### Available Tools
+With local storage enabled:
 
-#### `generate_visual`
+```json
+{
+  "mcpServers": {
+    "napkin-ai": {
+      "command": "npx",
+      "args": ["-y", "napkin-ai-mcp"],
+      "env": {
+        "NAPKIN_API_KEY": "your-api-key-here",
+        "NAPKIN_STORAGE_TYPE": "local",
+        "NAPKIN_STORAGE_LOCAL_DIR": "/Users/yourname/napkin-visuals"
+      }
+    }
+  }
+}
+```
 
-Submit a visual generation request. Returns a request ID for tracking.
+After updating the config, restart Claude Desktop.
 
-**Input:**
-- `content` (required): Text content to visualise
-- `format`: Output format - `svg`, `png`, or `ppt` (default: `svg`)
-- `context`: Additional context for generation
-- `language`: BCP 47 language tag (e.g., `en-GB`)
-- `style_id`: Napkin AI style identifier
-- `visual_query`: Visual type (e.g., `mindmap`, `flowchart`, `timeline`)
-- `number_of_visuals`: Number of variations (1-4)
-- `transparent_background`: Use transparent background
-- `color_mode`: `light`, `dark`, or `both`
-- `width`, `height`: Dimensions in pixels (PNG only)
-- `orientation`: `auto`, `horizontal`, `vertical`, or `square`
+---
 
-#### `check_status`
+### Claude Code (CLI)
 
-Check the status of a generation request.
+Add to your Claude Code MCP settings:
 
-**Input:**
-- `request_id` (required): Request ID from `generate_visual`
+**Global config**: `~/.claude/settings.json`
+**Project config**: `.claude/settings.json`
 
-**Output:**
-- Status, progress, and file information when completed
+```json
+{
+  "mcpServers": {
+    "napkin-ai": {
+      "command": "npx",
+      "args": ["-y", "napkin-ai-mcp"],
+      "env": {
+        "NAPKIN_API_KEY": "your-api-key-here",
+        "NAPKIN_STORAGE_TYPE": "local",
+        "NAPKIN_STORAGE_LOCAL_DIR": "./visuals"
+      }
+    }
+  }
+}
+```
 
-#### `download_visual`
+Or run the CLI command:
 
-Download a generated visual as base64 data.
+```bash
+claude mcp add napkin-ai -- npx -y napkin-ai-mcp
+```
 
-**Input:**
-- `request_id` (required): Request ID
-- `file_id` (required): File ID from status response
+Then set the environment variable:
+```bash
+export NAPKIN_API_KEY="your-api-key-here"
+```
 
-**Output:**
-- Base64-encoded file content and size
+---
 
-#### `generate_and_wait`
+### Cursor
 
-Generate a visual and wait for completion (combines generate + polling).
+Add to your Cursor MCP configuration:
 
-**Input:** Same as `generate_visual`
+**File**: `~/.cursor/mcp.json`
 
-**Output:** Completed status with file information
+```json
+{
+  "mcpServers": {
+    "napkin-ai": {
+      "command": "npx",
+      "args": ["-y", "napkin-ai-mcp"],
+      "env": {
+        "NAPKIN_API_KEY": "your-api-key-here",
+        "NAPKIN_STORAGE_TYPE": "local",
+        "NAPKIN_STORAGE_LOCAL_DIR": "./visuals"
+      }
+    }
+  }
+}
+```
 
-#### `generate_and_save`
+---
 
-Generate a visual and save to configured storage.
+### Windsurf
 
-**Input:** Same as `generate_visual`, plus:
-- `filename`: Custom filename (without extension)
+Add to your Windsurf MCP configuration:
 
-**Output:** Storage locations and public URLs
+**File**: `~/.windsurf/mcp.json`
 
-#### `list_styles`
+```json
+{
+  "mcpServers": {
+    "napkin-ai": {
+      "command": "npx",
+      "args": ["-y", "napkin-ai-mcp"],
+      "env": {
+        "NAPKIN_API_KEY": "your-api-key-here"
+      }
+    }
+  }
+}
+```
 
-Get information about available visual styles.
+---
+
+### VS Code with Continue
+
+Add to your Continue configuration:
+
+**File**: `~/.continue/config.json`
+
+```json
+{
+  "experimental": {
+    "modelContextProtocolServers": [
+      {
+        "transport": {
+          "type": "stdio",
+          "command": "npx",
+          "args": ["-y", "napkin-ai-mcp"],
+          "env": {
+            "NAPKIN_API_KEY": "your-api-key-here"
+          }
+        }
+      }
+    ]
+  }
+}
+```
+
+---
+
+### Cline (VS Code Extension)
+
+Add to your Cline MCP settings in VS Code:
+
+1. Open VS Code settings
+2. Search for "Cline MCP"
+3. Add the server configuration:
+
+```json
+{
+  "napkin-ai": {
+    "command": "npx",
+    "args": ["-y", "napkin-ai-mcp"],
+    "env": {
+      "NAPKIN_API_KEY": "your-api-key-here"
+    }
+  }
+}
+```
+
+---
+
+## Available Tools
+
+Once configured, your AI assistant will have access to these tools:
+
+| Tool | Description |
+|------|-------------|
+| `generate_visual` | Submit a visual generation request (async) |
+| `check_status` | Check the status of a generation request |
+| `download_visual` | Download a generated visual as base64 |
+| `generate_and_wait` | Generate and wait for completion |
+| `generate_and_save` | Generate and save to configured storage |
+| `list_styles` | Get information about available styles |
+
+### Example Prompts
+
+Once configured, try these prompts with your AI assistant:
+
+- "Create a mindmap visualising the key concepts of machine learning"
+- "Generate a flowchart showing the user registration process"
+- "Make a timeline of major events in the history of computing"
+- "Create an infographic comparing REST vs GraphQL APIs"
+
+---
+
+## Configuration
+
+### Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `NAPKIN_API_KEY` | Napkin AI API key | Yes |
+| `NAPKIN_API_BASE_URL` | Custom API base URL | No |
+| `NAPKIN_STORAGE_TYPE` | Storage type: `local`, `s3`, `google-drive`, `slack` | No |
+| `NAPKIN_POLLING_INTERVAL` | Polling interval in ms (default: 2000) | No |
+| `NAPKIN_MAX_WAIT_TIME` | Max wait time in ms (default: 300000) | No |
+
+### Storage Configuration
+
+#### Local Storage
+```bash
+NAPKIN_STORAGE_TYPE=local
+NAPKIN_STORAGE_LOCAL_DIR=./output
+```
+
+#### Amazon S3
+```bash
+NAPKIN_STORAGE_TYPE=s3
+NAPKIN_STORAGE_S3_BUCKET=my-bucket
+NAPKIN_STORAGE_S3_REGION=eu-west-1
+NAPKIN_STORAGE_S3_PREFIX=napkin-visuals/  # Optional
+AWS_ACCESS_KEY_ID=your-access-key
+AWS_SECRET_ACCESS_KEY=your-secret-key
+```
+
+#### Google Drive
+```bash
+NAPKIN_STORAGE_TYPE=google-drive
+NAPKIN_STORAGE_GDRIVE_FOLDER_ID=folder-id
+NAPKIN_STORAGE_GDRIVE_CREDENTIALS=./service-account.json
+```
+
+#### Slack
+```bash
+NAPKIN_STORAGE_TYPE=slack
+NAPKIN_STORAGE_SLACK_CHANNEL=C0123456789
+NAPKIN_STORAGE_SLACK_TOKEN=xoxb-your-token
+```
+
+### Default Visual Settings
+
+```bash
+NAPKIN_DEFAULT_FORMAT=svg       # svg, png, or ppt
+NAPKIN_DEFAULT_LANGUAGE=en-GB   # BCP 47 language tag
+NAPKIN_DEFAULT_COLOR_MODE=light # light, dark, or both
+NAPKIN_DEFAULT_ORIENTATION=auto # auto, horizontal, vertical, or square
+```
+
+### JSON Configuration
+
+Create a `config.json` file:
+
+```json
+{
+  "napkinApiKey": "your-api-key",
+  "storage": {
+    "type": "local",
+    "directory": "./visuals"
+  },
+  "defaults": {
+    "format": "svg",
+    "language": "en-GB",
+    "color_mode": "light"
+  }
+}
+```
+
+---
+
+## Tool Parameters
+
+### generate_visual / generate_and_wait
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `content` | string | **Required**. Text content to visualise |
+| `format` | string | Output format: `svg`, `png`, or `ppt` |
+| `context` | string | Additional context for generation |
+| `language` | string | BCP 47 language tag (e.g., `en-GB`) |
+| `style_id` | string | Napkin AI style identifier |
+| `visual_query` | string | Visual type: `mindmap`, `flowchart`, `timeline`, etc. |
+| `number_of_visuals` | number | Variations to generate (1-4) |
+| `transparent_background` | boolean | Use transparent background |
+| `color_mode` | string | `light`, `dark`, or `both` |
+| `width` | number | Width in pixels (PNG only) |
+| `height` | number | Height in pixels (PNG only) |
+| `orientation` | string | `auto`, `horizontal`, `vertical`, or `square` |
+
+### Visual Query Types
+
+- `mindmap` - Mind map visualisations
+- `flowchart` - Process flows and diagrams
+- `timeline` - Chronological events
+- `comparison` - Side-by-side comparisons
+- `hierarchy` - Organisational structures
+- `cycle` - Cyclical processes
+- `list` - Bulleted or numbered lists
+- `matrix` - Grid-based comparisons
+
+---
 
 ## Programmatic Usage
 
@@ -230,20 +370,17 @@ const result = await client.generateAndWait({
 
 // Download the file
 const buffer = await client.downloadFile(result.id, result.files[0].id);
-
-// Or create the MCP server programmatically
-const server = createNapkinMcpServer({
-  napkinApiKey: "your-api-key",
-  storage: {
-    type: "local",
-    directory: "./output",
-  },
-});
 ```
+
+---
 
 ## Development
 
 ```bash
+# Clone the repository
+git clone https://github.com/your-username/napkin-ai-mcp.git
+cd napkin-ai-mcp
+
 # Install dependencies
 npm install
 
@@ -253,40 +390,48 @@ npm run dev
 # Run tests
 npm test
 
-# Run tests with coverage
-npm run test:coverage
-
-# Type check
-npm run typecheck
-
-# Lint
-npm run lint
-
-# Format code
-npm run format
-
 # Build for production
 npm run build
 ```
 
+---
+
+## Troubleshooting
+
+### "NAPKIN_API_KEY is required"
+
+Ensure you've set the `NAPKIN_API_KEY` environment variable in your MCP configuration.
+
+### "Storage not configured"
+
+The `generate_and_save` tool requires storage configuration. Add one of the storage configurations above.
+
+### Visual generation times out
+
+Increase `NAPKIN_MAX_WAIT_TIME` (default: 300000ms = 5 minutes).
+
+### Connection issues
+
+1. Ensure Node.js 18+ is installed
+2. Check your API key is valid
+3. Verify network connectivity to api.napkin.ai
+
+---
+
 ## API Reference
 
-### Napkin AI API
-
-The Napkin AI API is currently in developer preview. For full API documentation, visit:
-- [API Documentation](https://api.napkin.ai/docs)
+- [Napkin AI API Documentation](https://api.napkin.ai/docs)
 - [Available Styles](https://api.napkin.ai/docs/styles/index.html)
+- [MCP Specification](https://modelcontextprotocol.io)
 
-### Visual Query Types
-
-Common visual query types include:
-- `mindmap` - Mind map visualisations
-- `flowchart` - Process flows and diagrams
-- `timeline` - Chronological events
-- `comparison` - Side-by-side comparisons
-- `hierarchy` - Organisational structures
-- `cycle` - Cyclical processes
+---
 
 ## Licence
 
 MIT
+
+---
+
+## Contributing
+
+Contributions are welcome! Please read our contributing guidelines and submit pull requests to the main repository.
