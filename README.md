@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="https://cdn.brandfetch.io/id-0X7G2NZ/theme/dark/logo.svg" alt="Napkin AI Logo" width="300">
+  <img src="https://www.napkin.ai/assets/napkin-logo-2024.svg" alt="Napkin AI Logo" width="300">
 </p>
 
 # Napkin AI MCP Server
 
-[![CI](https://github.com/your-username/napkin-ai-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/your-username/napkin-ai-mcp/actions/workflows/ci.yml)
+[![CI](https://github.com/LouisChanCLY/napkin-ai-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/LouisChanCLY/napkin-ai-mcp/actions/workflows/ci.yml)
 [![npm version](https://badge.fury.io/js/napkin-ai-mcp.svg)](https://www.npmjs.com/package/napkin-ai-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -604,7 +604,7 @@ if (result.generated_files && result.generated_files.length > 0) {
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/napkin-ai-mcp.git
+git clone https://github.com/LouisChanCLY/napkin-ai-mcp.git
 cd napkin-ai-mcp
 
 # Install dependencies

@@ -6,7 +6,7 @@ Thank you for your interest in contributing! This guide will help you get starte
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/napkin-ai-mcp.git
+git clone https://github.com/LouisChanCLY/napkin-ai-mcp.git
 cd napkin-ai-mcp
 
 # Install dependencies

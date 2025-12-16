@@ -79,7 +79,7 @@ EXAMPLES:
   # With local storage
   NAPKIN_API_KEY=your-key NAPKIN_STORAGE_TYPE=local NAPKIN_STORAGE_LOCAL_DIR=./visuals npx napkin-ai-mcp
 
-For more information, visit: https://github.com/your-username/napkin-ai-mcp
+For more information, visit: https://github.com/LouisChanCLY/napkin-ai-mcp
 `);
 }
 
