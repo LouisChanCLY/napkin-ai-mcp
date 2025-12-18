@@ -429,10 +429,19 @@ export function createNapkinMcpServer(config: NapkinMcpServerConfig): McpServer 
         })
       );
 
-      const output = {
+      const isLocalStorage = storageProvider?.type === "local";
+      const output: Record<string, unknown> = {
         request_id: status.id,
         files: savedFiles,
       };
+
+      if (isLocalStorage) {
+        output.note =
+          "Files saved to local filesystem. If you are using Claude Desktop, " +
+          "note that it runs in a sandboxed environment and cannot access local files directly. " +
+          "You can open the file paths manually, or consider using a cloud storage provider " +
+          "(S3, Google Drive, etc.) for accessible URLs. Claude Code has full filesystem access.";
+      }
 
       return {
         content: [{ type: "text", text: JSON.stringify(output, null, 2) }],
