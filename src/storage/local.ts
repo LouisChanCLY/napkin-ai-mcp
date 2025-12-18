@@ -1,5 +1,4 @@
 import { writeFile, mkdir } from "node:fs/promises";
-import { existsSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { z } from "zod";
 import { StorageProvider, StoreFileInput, StorageResult } from "./types.js";
@@ -40,8 +39,15 @@ export class LocalStorageProvider implements StorageProvider {
   }
 
   async store(input: StoreFileInput): Promise<StorageResult> {
-    if (!existsSync(this.directory)) {
+    // Always attempt to create directory - mkdir with recursive:true is idempotent
+    try {
       await mkdir(this.directory, { recursive: true });
+    } catch (err) {
+      const error = err as Error & { code?: string };
+      // Only throw if it's not an "already exists" error
+      if (error.code !== "EEXIST") {
+        throw new Error(`Failed to create storage directory "${this.directory}": ${error.message}`);
+      }
     }
 
     const filePath = join(this.directory, input.filename);
