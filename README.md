@@ -288,6 +288,8 @@ NAPKIN_STORAGE_LOCAL_DIR=./output
 
 Files are saved with the format: `napkin-{request_id}-{index}-{color_mode}.{format}`
 
+> **Note for Claude Desktop users:** Claude Desktop runs in a sandboxed environment and cannot access local filesystem paths. While files are saved successfully, Claude Desktop cannot display or open them directly. For Claude Desktop, consider using a cloud storage provider (S3, Google Drive, etc.) which returns accessible URLs. Claude Code has full filesystem access and works seamlessly with local storage.
+
 #### Amazon S3
 
 Save visuals to an S3 bucket (also works with S3-compatible services like MinIO, DigitalOcean Spaces, Cloudflare R2):
