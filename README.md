@@ -8,7 +8,7 @@
 
 > **Disclaimer:** This is an **unofficial**, community-maintained MCP server for Napkin AI. It is not affiliated with, endorsed by, or officially supported by Napkin AI or Second Layer, Inc. For official Napkin AI products and support, please visit [napkin.ai](https://napkin.ai).
 
-> **API Compatibility:** Tested with Napkin AI API v0.10.5. Newer API versions may introduce breaking changes.
+> **API Compatibility:** Tested with Napkin AI API v1.1.16. Newer API versions may introduce breaking changes.
 
 An MCP (Model Context Protocol) server for generating infographics and visuals using the [Napkin AI](https://napkin.ai) API. This server enables AI assistants like Claude to generate professional visuals from text content.
 

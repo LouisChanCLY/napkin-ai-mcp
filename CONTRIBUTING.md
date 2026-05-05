@@ -79,7 +79,7 @@ When reporting issues, please include:
 
 ## API Compatibility
 
-This MCP server is tested against Napkin AI API v0.10.5. If you encounter issues with newer API versions, please open an issue with details about the API response changes.
+This MCP server is tested against Napkin AI API v1.1.16. If you encounter issues with newer API versions, please open an issue with details about the API response changes.
 
 ## Questions?
 
