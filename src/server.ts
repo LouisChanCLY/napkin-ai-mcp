@@ -170,9 +170,17 @@ export function createNapkinMcpServer(config: NapkinMcpServerConfig): McpServer 
 
       const response = await client.generate(request);
 
+      // Only include fields declared in outputSchema — extra fields cause
+      // Claude Desktop to reject the response with "Failed to call tool"
+      const cleanResponse = {
+        id: response.id,
+        status: response.status,
+        warning: response.warning,
+      };
+
       return {
         content: [{ type: "text", text: JSON.stringify(response, null, 2) }],
-        structuredContent: response,
+        structuredContent: cleanResponse,
       };
     }
   );
@@ -210,9 +218,18 @@ export function createNapkinMcpServer(config: NapkinMcpServerConfig): McpServer 
     async ({ request_id }) => {
       const status = await client.getStatus(request_id);
 
+      // Only include fields declared in outputSchema — extra fields (e.g. request)
+      // cause Claude Desktop to reject the response with "Failed to call tool"
+      const cleanStatus = {
+        id: status.id,
+        status: status.status,
+        generated_files: status.generated_files,
+        error: status.error,
+      };
+
       return {
         content: [{ type: "text", text: JSON.stringify(status, null, 2) }],
-        structuredContent: status,
+        structuredContent: cleanStatus,
       };
     }
   );
@@ -311,9 +328,17 @@ export function createNapkinMcpServer(config: NapkinMcpServerConfig): McpServer 
         maxWaitTime,
       });
 
+      // Only include fields declared in outputSchema — extra fields (e.g. request)
+      // cause Claude Desktop to reject the response with "Failed to call tool"
+      const cleanStatus = {
+        id: status.id,
+        status: status.status,
+        generated_files: status.generated_files,
+      };
+
       return {
         content: [{ type: "text", text: JSON.stringify(status, null, 2) }],
-        structuredContent: status,
+        structuredContent: cleanStatus,
       };
     }
   );
